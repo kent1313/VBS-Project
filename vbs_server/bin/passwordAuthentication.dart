@@ -71,6 +71,8 @@ class AuthProvider {
 
       List<bool> data = [];
       var fullName = result.rows.first.typedAssoc()["fullName"];
+      // There's only 1 row eer returned ... so ignore the rest and just look at the first
+      //  Also, data shouldn't be a List!!
       for(var row in result.rows) {
         String admin = row.typedAssoc()['systemAdmin'];
         if(admin == 'Y') {
@@ -84,7 +86,7 @@ class AuthProvider {
         subject: user,
         issuer: config.jwtIssuer,
         audience: [config.jwtAudience],
-        payload: {"admin": data[0]}
+        payload: {"admin": data[0].toString()}
       );
       String token = issueJwtHS256(claim, config.jwtSecret);
 
@@ -97,7 +99,7 @@ class AuthProvider {
 
       var payload = (request.context["payload"]! as ContextPayload);
       payload.user = user;
-      payload.admin = response["admin"];
+      payload.admin = response["admin"].toString();
 
       return Response.ok(jsonEncode(response));
     } catch (e, stacktrace) {
@@ -123,6 +125,8 @@ class AuthProvider {
       return null;
 
     } catch (e, stacktrace) {
+      print("Check failed! $e");
+      print(stacktrace);
       return Response.forbidden('Authorization failure');
     }
   }

@@ -28,6 +28,8 @@ import 'config.dart';
 import 'passwordAuthentication.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 
+import 'setupRoutes.dart';
+
 void main() async {
   var app = Router();
 
@@ -369,11 +371,13 @@ void main() async {
     return Response.ok('hello-world');
   });
 
+  SetupRoutes.addRoutes(app);
+
   // Configure a pipeline that logs requests.
   final _handler = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(_headersMiddleware)
-      .addMiddleware(createMiddleware(requestHandler: AuthProvider.handle))
+      .addMiddleware(AuthProvider.createMiddleware(requestHandler: AuthProvider.handle))
       .addHandler(app);
 
   config.load();
