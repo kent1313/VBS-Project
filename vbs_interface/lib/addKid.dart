@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert' as convert;
-import 'package:http/http.dart' as http;
+import 'package:vbs_interface/kidConfiguration.dart';
 import 'package:vbs_shared/vbs_shared.dart';
-import 'authorizationData.dart';
 
 class AddKid extends StatefulWidget {
   const AddKid({Key? key, required this.title}) : super(key: key);
@@ -28,9 +26,45 @@ class _AddKidState extends State<AddKid> {
   TextEditingController lastName = TextEditingController();
   String message = '';
   bool badInput = false;
-  String groupName = 'Pick a group';
   String grade = 'Pick a grade';
   String familyName = 'Pick a family';
+  Kid kid = Kid();
+  List<Group> groups = [];
+
+  var grades = const [
+    {"id": null, "label": "Pick a grade"},
+    {"id": -1, "label": "Pre-K"},
+    {"id": 0, "label": "Kindergarten"},
+    {"id": 1, "label": "First Grade"},
+    {"id": 2, "label": "Second Grade"},
+    {"id": 3, "label": "Third Grade"},
+    {"id": 4, "label": "Fourth Grade"},
+    {"id": 5, "label": "Fifth Grade"},
+    {"id": 6, "label": "Sixth Grade"},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    //  https://stackoverflow.com/questions/56262655/flutter-get-passed-arguments-from-navigator-in-widgets-states-initstate
+    // future that allows us to access context. function is called inside the future
+    // otherwise it would be skipped and args would return null
+    Future.delayed(Duration.zero, () {
+      KidArguments? args = ModalRoute.of(context)!.settings.arguments as KidArguments;
+      if(args == null) {
+        kid = Kid();
+        // This won't work -- we have to always pass the KidArguments
+        groups = [];
+      } else {
+        kid = args.kid;
+        firstName.text = kid.firstName ?? "";
+        lastName.text = kid.lastName ?? "";
+        groups = args.groups;
+      }
+      print("Kid = ${kid.toJSON()}");
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,38 +126,38 @@ class _AddKidState extends State<AddKid> {
                   children: [
                     Container(
                       padding: const EdgeInsets.fromLTRB(10, 10, 20, 20),
-                      child: DropdownButton<String> (
-                        value: groupName,
+                      child: DropdownButton<int> (
+                        value: kid.groupID,
                         icon: const Icon(Icons.arrow_downward),
-                        onChanged: (String? newValue) {
+                        onChanged: (int? newValue) {
                           setState(() {
-                            groupName = newValue!;
+                            kid.groupID = newValue;
                           });
                         },
-                        items: ['Pick a group', 'Reuben','Judah','Levi','Simeon']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
+                        items: groups
+                            .map<DropdownMenuItem<int>>((Group group) {
+                          return DropdownMenuItem<int>(
+                            value: group.groupID,
+                            child: Text(group.groupName ?? ""),
                           );
-                        }).toList(),
+                        }).toList()..add(DropdownMenuItem(child: Text("<Pick a group>"))),
                       )
                     ),
                     Container(
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                        child: DropdownButton<String> (
-                          value: grade,
+                        child: DropdownButton<int?> (
+                          value: kid.grade,
                           icon: const Icon(Icons.arrow_downward),
-                          onChanged: (String? newValue) {
+                          onChanged: (int? newValue) {
                             setState(() {
-                              grade = newValue!;
+                              kid.grade = newValue!;
                             });
                           },
-                          items: ['Pick a grade', 'First Grade','Second Grade','Third Grade', 'Fourth Grade', 'Fifth Grade', 'Sixth Grade']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
+                          items: grades
+                              .map<DropdownMenuItem<int?>>((var value) {
+                            return DropdownMenuItem<int?>(
+                              value: value["id"] as int?,
+                              child: Text(value["label"]! as String),
                             );
                           }).toList(),
                         )
@@ -150,8 +184,8 @@ class _AddKidState extends State<AddKid> {
                   ],
                 ),
                 ElevatedButton(
-                    onPressed: createKid,
-                    child: const Text('Submit')
+                    onPressed: saveKid,
+                    child: const Text('Save')
                 ),
               ]
         ),
@@ -160,35 +194,7 @@ class _AddKidState extends State<AddKid> {
     );
   }
 
-  createKid() {
-    if (firstName.text == '') {
-      badInput = true;
-      message = 'Each kid must have a first name';
-      setState(() {});
-    } else {
-      if (lastName.text == '') {
-        badInput = true;
-        message = 'Each kid must have a last name';
-        setState(() {});
-      } else {
-        if(groupName == 'Pick a group') {
-          badInput = true;
-          message = 'Each kid must have a group';
-          setState(() {});
-        } else {
-          if(familyName == 'Pick a family') {
-            badInput = true;
-            message = 'Each kid must have a family';
-            setState(() {});
-          } else {
-            if(grade == 'Pick a grade') {
-              badInput = true;
-              message = 'Each kid must have a grade';
-              setState(() {});
-            }
-          }
-        }
-      }
-    }
+  saveKid() {
+
   }
 }

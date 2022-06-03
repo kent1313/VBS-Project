@@ -29,6 +29,8 @@ class _kidConfigurationState extends State<kidConfiguration> {
   TextEditingController search = TextEditingController();
   List<Kid>? list;
 
+  List<Group>? groups;
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -44,7 +46,7 @@ class _kidConfigurationState extends State<kidConfiguration> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/addKid',);
+          Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
         },
         child: Icon(Icons.person_add),
       ),
@@ -83,7 +85,9 @@ class _kidConfigurationState extends State<kidConfiguration> {
                                 return ListTile(
                                   leading: Icon(Icons.account_circle),
                                   onTap: () {
-                                    Navigator.pushNamed(context, '/editKid',);
+                                    // SKP -- changed to add kid so we only use 1 screen
+                                    //  also added the kid argument
+                                    Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
                                   },
                                   title: Text(kidFirstNames.toString()),
                                   subtitle: Text(kidLastNames.toString()),
@@ -119,7 +123,8 @@ class _kidConfigurationState extends State<kidConfiguration> {
 
   Future<List<Kid>> loadSearch() async {
     if(search.text.isEmpty) {
-      if(list == null) {
+      if(groups == null || list == null) {
+        groups = await api.loadGroups(context);
         list = await api.loadAllKids(context);
         return list!;
       } else {
@@ -134,4 +139,13 @@ class _kidConfigurationState extends State<kidConfiguration> {
 
     });
   }
+}
+
+// Creating a class to use to pass the kid from the
+// search page to the add/edit kig page
+class KidArguments {
+  Kid kid;
+  List<Group> groups;
+
+  KidArguments({required this.kid, required this.groups});
 }
