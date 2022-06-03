@@ -114,9 +114,18 @@ void main() async {
         kid.groupID = int.parse(row.colByName("groupID") ?? '0');
         kid.familyID = int.parse(row.colByName("familyID") ?? '0');
         kid.grade = int.parse(row.colByName("grade") ?? '0');
-        // print all rows as Map<String, String>
-        //print(row);
-        data.add(kid.toJSON());
+
+        if(kid.firstName!.length >= search.length) {
+          if(kid.firstName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
+            data.add(kid.toJSON());
+          }
+        } else {
+          if(kid.lastName!.length >= search.length) {
+            if(kid.lastName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
+              data.add(kid.toJSON());
+            }
+          }
+        }
       }
     //print(data);
     conn.close();

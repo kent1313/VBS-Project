@@ -185,9 +185,8 @@ class _kidConfigurationState extends State<kidConfiguration> {
     }
   }
   submitSearch(newValue) {
-    setState(() {
-
-    });
+    print('State reset');
+    setState(() {});
   }
 }
 
