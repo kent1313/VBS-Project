@@ -61,7 +61,11 @@ class _homePageState extends State<homePage> {
             leading: Icon(Icons.admin_panel_settings),
             title: Text('Users'),
             onTap: () {
-              Navigator.pushNamed(context, '/users');
+              if(api.admin == 'full') {
+                Navigator.pushNamed(context, '/users');
+              } else {
+                permissionDenied();
+              }
             },
           ),
           ListTile(
@@ -110,4 +114,25 @@ class _homePageState extends State<homePage> {
         ),
       );
     }
+
+  Future permissionDenied() async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'You do not have permission to edit or create users. Please check with an administrator to continue.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

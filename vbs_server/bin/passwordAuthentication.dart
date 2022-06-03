@@ -39,14 +39,18 @@ class AuthProvider {
         return Response(401, body: 'Incorrect username/password');
       }
 
-      List<bool> data = [];
+      List<String> data = [];
       var fullName = result.rows.first.typedAssoc()["fullName"];
       for(var row in result.rows) {
         String admin = row.typedAssoc()['systemAdmin'];
         if(admin == 'Y') {
-          data.add(true);
+          data.add('full');
         } else {
-          data.add(false);
+          if(admin == 'N') {
+            data.add('none');
+          } else {
+            data.add('some');
+          }
         }
       }
 
