@@ -226,3 +226,28 @@ class Family {
     };
   }
 }
+
+class User {
+  String userName = "";
+  String password = "";
+  int leaderID = -1;
+  bool systemAdmin = false;
+
+  static User fromJSONObject(Map<String, dynamic> json) {
+    User user = User();
+    user.userName = json["userName"];
+    user.password = json["password"];
+    user.leaderID = json["leaderID"];
+    user.systemAdmin = json["systemAdmin"];
+    return user;
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      "userName": userName,
+      "password": password,
+      "leaderID": leaderID,
+      "systemAdmin": systemAdmin,
+    };
+  }
+}

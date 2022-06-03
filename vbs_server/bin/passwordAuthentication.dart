@@ -8,6 +8,36 @@ import 'package:shelf/shelf.dart';
 import 'config.dart';
 
 class AuthProvider {
+  static Middleware createMiddleware({
+    FutureOr<Response?> Function(Request)? requestHandler,
+    FutureOr<Response> Function(Response)? responseHandler,
+    FutureOr<Response> Function(Object error, StackTrace)? errorHandler,
+  }) {
+    requestHandler ??= (request) => null;
+    responseHandler ??= (response) => response;
+
+    FutureOr<Response> Function(Object, StackTrace)? onError;
+    if (errorHandler != null) {
+      onError = (error, stackTrace) {
+        if (error is HijackException) throw error;
+        return errorHandler(error, stackTrace);
+      };
+    }
+
+    return (Handler innerHandler) {
+      return (request) {
+        // to allow passing info from middleware to request
+        request = request.change(context: {"payload": ContextPayload()});
+        return Future.sync(() => requestHandler!(request)).then((response) {
+          if (response != null) return response;
+
+          return Future.sync(() => innerHandler(request))
+              .then((response) => responseHandler!(response), onError: onError);
+        });
+      };
+    };
+  }
+
   static FutureOr<Response?> handle(Request request) async {
     print(" ... ${request.url.toString()}");
     if(request.url.toString() == "login" || request.url.toString() == "session/login") {
@@ -41,6 +71,8 @@ class AuthProvider {
 
       List<String> data = [];
       var fullName = result.rows.first.typedAssoc()["fullName"];
+      // There's only 1 row eer returned ... so ignore the rest and just look at the first
+      //  Also, data shouldn't be a List!!
       for(var row in result.rows) {
         String admin = row.typedAssoc()['systemAdmin'];
         if(admin == 'Y') {
@@ -58,6 +90,7 @@ class AuthProvider {
         subject: user,
         issuer: config.jwtIssuer,
         audience: [config.jwtAudience],
+        payload: {"admin": data[0].toString()}
       );
       String token = issueJwtHS256(claim, config.jwtSecret);
 
@@ -67,6 +100,10 @@ class AuthProvider {
         "token": token,
         "admin": data[0],
       };
+
+      var payload = (request.context["payload"]! as ContextPayload);
+      payload.user = user;
+      payload.admin = response["admin"].toString();
 
       return Response.ok(jsonEncode(response));
     } catch (e, stacktrace) {
@@ -84,11 +121,23 @@ class AuthProvider {
       String token = request.headers['Authorization']!.replaceAll('Bearer ', '');
       JwtClaim claim = verifyJwtHS256Signature(token, config.jwtSecret);
       claim.validate(issuer: config.jwtIssuer, audience: config.jwtAudience);
+
+      var payload = (request.context["payload"]! as ContextPayload);
+      payload.user = claim.subject!;
+      payload.admin = claim.payload["admin"];
+
       return null;
 
     } catch (e, stacktrace) {
+      print("Check failed! $e");
+      print(stacktrace);
       return Response.forbidden('Authorization failure');
     }
   }
 
+}
+
+class ContextPayload {
+  String user = "";
+  String admin = "";
 }

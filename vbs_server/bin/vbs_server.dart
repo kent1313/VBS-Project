@@ -28,6 +28,8 @@ import 'config.dart';
 import 'passwordAuthentication.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 
+import 'setupRoutes.dart';
+
 void main() async {
   var app = Router();
 
@@ -192,6 +194,41 @@ void main() async {
         );
   });
 
+  app.get('/myKids', (Request request) async {
+    final conn = await config.connectToDatabase();
+
+    String user = (request.context["payload"]! as ContextPayload).user;
+    var results = await conn.execute("select leaderID from tblUser where userName = :user", {"user": user});
+    int leaderID = results.rows.first.typedAssoc()["leaderID"];
+    results = await conn.execute("select groupID from tblLeader where leaderID = :leader", {"leader": leaderID});
+    int groupID = results.rows.first.typedAssoc()["groupID"];
+
+    results = await conn.execute(
+        'select * from tblKid where groupID = :groupID;',
+        {'groupID': groupID});
+    var data = [];
+    for (final row in results.rows) {
+      // print(row.colAt(0));
+      // print(row.colByName("title"));
+      var kid = Kid();
+      kid.kidID = int.parse(row.colByName("kidID") ?? '0');
+      kid.firstName = row.colByName("firstName");
+      kid.lastName = row.colByName("lastName");
+      kid.DOB = row.colByName('DOB');
+      kid.groupID = int.parse(row.colByName("groupID") ?? '0');
+      kid.familyID = int.parse(row.colByName("familyID") ?? '0');
+      kid.grade = int.parse(row.colByName("grade") ?? '0');
+      // print all rows as Map<String, String>
+      //print(row);
+      data.add(kid.toJSON());
+    }
+    //print(data);
+    conn.close();
+    return Response.ok("$data",
+      //headers: {"Content-Type": "application/json"}
+    );
+  });
+
   app.get('/group/<groupID>/<date>',
       (Request request, String groupID, date) async {
     final conn = await config.connectToDatabase();
@@ -334,11 +371,13 @@ void main() async {
     return Response.ok('hello-world');
   });
 
+  SetupRoutes.addRoutes(app);
+
   // Configure a pipeline that logs requests.
   final _handler = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(_headersMiddleware)
-      .addMiddleware(createMiddleware(requestHandler: AuthProvider.handle))
+      .addMiddleware(AuthProvider.createMiddleware(requestHandler: AuthProvider.handle))
       .addHandler(app);
 
   config.load();
