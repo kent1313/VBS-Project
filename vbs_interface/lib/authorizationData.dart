@@ -9,6 +9,7 @@ final api = API();
 
 class API {
   String? token;
+  bool admin = false;
 
   Future <String> sendMessage({required BuildContext context,
     required String path,
@@ -96,5 +97,13 @@ class API {
         path: 'addKid',
         body: jsonEncode(kid.toJSON())
     );
+  }
+
+  get isLoggedIn {
+    if(token == null || token!.isEmpty) {
+      return false;
+    } else {
+      return true;
+    }
   }
 }

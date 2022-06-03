@@ -34,12 +34,21 @@ class AuthProvider {
             "user": user,
             "pass": password,
           });
-      List rows = [];
+      conn.close();
       if (result.rows.length == 0) {
         return Response(401, body: 'Incorrect username/password');
       }
 
+      List<bool> data = [];
       var fullName = result.rows.first.typedAssoc()["fullName"];
+      for(var row in result.rows) {
+        String admin = row.typedAssoc()['systemAdmin'];
+        if(admin == 'Y') {
+          data.add(true);
+        } else {
+          data.add(false);
+        }
+      }
 
       JwtClaim claim = JwtClaim(
         subject: user,
@@ -52,6 +61,7 @@ class AuthProvider {
         "name": fullName,
         "loggedIn": true,
         "token": token,
+        "admin": data[0],
       };
 
       return Response.ok(jsonEncode(response));
