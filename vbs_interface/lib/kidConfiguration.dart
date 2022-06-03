@@ -85,7 +85,7 @@ class _kidConfigurationState extends State<kidConfiguration> {
                                 var kid = snapshot.data![index];
                                 var kidFirstNames = kid.firstName;
                                 var kidLastNames = kid.lastName;
-                                var groupName = api.getGroupName(context, kid.groupID ?? 0);
+                                var groupName = kid.groupName;
                                 return ListTile(
                                   leading: const Icon(Icons.account_circle),
                                   onTap: () {

@@ -48,6 +48,7 @@ class Kid {
   int? familyID;
   Family? family;
   int? groupID;
+  String? groupName;
 
   Object toJSON() {
     Object obj = {
@@ -59,6 +60,7 @@ class Kid {
       'grade': grade,
       'familyID': familyID,
       'family': family == null ? null : family!.toJSON(),
+      'groupName': groupName,
     };
     return obj;
   }
@@ -76,6 +78,7 @@ class Kid {
     kid.DOB = obj["DOB"];
     kid.grade = obj["grade"];
     kid.familyID = obj["familyID"];
+    kid.groupName = obj["groupName"];
     if(obj["family"] != null) {
       kid.family = Family.fromJSONObect(obj["family"]);
     }

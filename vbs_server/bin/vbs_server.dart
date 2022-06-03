@@ -73,7 +73,8 @@ void main() async {
   app.get('/kidNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select * from tblKid;');
+    var results = await conn.execute('select k.*, g.groupName '
+        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -86,6 +87,7 @@ void main() async {
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
+      kid.groupName = row.colByName("groupName");
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -100,7 +102,8 @@ void main() async {
   app.get('/kidSearch/<search>', (Request request, String search) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select * from tblKid;');
+    var results = await conn.execute('select k.*, g.groupName '
+        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
     var data = [];
     String first = '';
     String last = '';
@@ -116,16 +119,16 @@ void main() async {
         kid.groupID = int.parse(row.colByName("groupID") ?? '0');
         kid.familyID = int.parse(row.colByName("familyID") ?? '0');
         kid.grade = int.parse(row.colByName("grade") ?? '0');
+        kid.groupName = row.colByName("groupName");
 
         if(kid.firstName!.length >= search.length) {
           if(kid.firstName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
             data.add(kid.toJSON());
           }
-        } else {
-          if(kid.lastName!.length >= search.length) {
-            if(kid.lastName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
-              data.add(kid.toJSON());
-            }
+        }
+        if(kid.lastName!.length >= search.length) {
+          if(kid.lastName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
+            data.add(kid.toJSON());
           }
         }
       }
