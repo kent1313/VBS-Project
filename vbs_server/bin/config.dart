@@ -1,34 +1,3 @@
-/*
-import 'package:mysql_client/mysql_client.dart';
-
-final Config config = Config();
-
-class Config {
-
-  String host = "localhost";
-  int port = 3306;
-  String userName = "vbsuser";
-  String password = "drowssap";
-  String databaseName = "vbs2022";
-
-  connectToDatabase() async {
-
-    final conn = await MySQLConnection.createConnection(
-      host: host,
-      port: port,
-      userName: userName,
-      password: password,
-      databaseName: databaseName,
-    );
-
-// actually connect to database
-    await conn.connect();
-    return conn;
-  }
-
-}
- */
-
 import 'dart:convert';
 import 'dart:io';
 

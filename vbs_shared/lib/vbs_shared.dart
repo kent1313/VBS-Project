@@ -46,6 +46,7 @@ class Kid {
   String? DOB;
   int? grade;
   int? familyID;
+  Family? family;
   int? groupID;
 
   Object toJSON() {
@@ -56,7 +57,8 @@ class Kid {
       'groupID': groupID,
       'DOB': DOB,
       'grade': grade,
-      'familyID': familyID
+      'familyID': familyID,
+      'family': family == null ? null : family!.toJSON(),
     };
     return obj;
   }
@@ -74,6 +76,9 @@ class Kid {
     kid.DOB = obj["DOB"];
     kid.grade = obj["grade"];
     kid.familyID = obj["familyID"];
+    if(obj["family"] != null) {
+      kid.family = Family.fromJSONObect(obj["family"]);
+    }
     kid.kidID = obj["kidID"];
     return kid;
   }
@@ -191,5 +196,33 @@ class AddKid {
       kids.add(kid);
     }
     return kids;
+  }
+}
+
+class Family {
+  int id = -1;
+  String familyName = "";
+  String address = "";
+  String phone = "";
+  String email = "";
+
+  static Family fromJSONObect(Map<String, dynamic> json) {
+    Family newFamily =  Family();
+    newFamily.id = json["id"];
+    newFamily.familyName = json["familyName"];
+    newFamily.address = json["address"];
+    newFamily.phone = json["phone"];
+    newFamily.email = json["email"];
+    return newFamily;
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      "id": id,
+      "familyName": familyName,
+      "address": address,
+      "phone": phone,
+      "email": email
+    };
   }
 }
