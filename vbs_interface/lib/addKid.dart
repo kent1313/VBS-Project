@@ -47,48 +47,48 @@ class _AddKidState extends State<AddKid> {
           title: Text(widget.title),
         ),
         body: Center(
-          child: Column(
-            children: [
-              Visibility(
-                  child: Container(
-                      padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
-                      child: Text(message, style: const TextStyle(color: Colors.red,),)
-                  ),
-                visible: badInput,
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(10, 15, 10, 5),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'First Name',
-                  ),
-                  controller: firstName,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(
-                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                  ],
+          child: Align(
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Visibility(
+                    child: Container(
+                        padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
+                        child: Text(message, style: const TextStyle(color: Colors.red,),)
+                    ),
+                  visible: badInput,
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Last Name',
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 15, 10, 5),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'First Name',
+                    ),
+                    controller: firstName,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(
+                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                    ],
                   ),
-                  controller: lastName,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(
-                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                  ],
                 ),
-              ),
-              Align(
-                alignment: Alignment.center,
-                child: Row(
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Last Name',
+                    ),
+                    controller: lastName,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(
+                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                    ],
+                  ),
+                ),
+                Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.fromLTRB(10, 10, 20, 20),
@@ -149,13 +149,13 @@ class _AddKidState extends State<AddKid> {
                     ),
                   ],
                 ),
-              ),
-              ElevatedButton(
-                  onPressed: createKid,
-                  child: const Text('Submit')
-              ),
-            ]
-        )
+                ElevatedButton(
+                    onPressed: createKid,
+                    child: const Text('Submit')
+                ),
+              ]
+        ),
+          )
         )
     );
   }

@@ -6,8 +6,8 @@ import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 import 'package:side_navigation/side_navigation.dart';
 
-class kidConfiguration extends StatefulWidget {
-  const kidConfiguration({Key? key, required this.title}) : super(key: key);
+class userConfiguration extends StatefulWidget {
+  const userConfiguration({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -21,10 +21,10 @@ class kidConfiguration extends StatefulWidget {
   final String title;
 
   @override
-  State<kidConfiguration> createState() => _kidConfigurationState();
+  State<userConfiguration> createState() => _userConfigurationState();
 }
 
-class _kidConfigurationState extends State<kidConfiguration> {
+class _userConfigurationState extends State<userConfiguration> {
   int selectedIndex = 0;
   TextEditingController search = TextEditingController();
   List<Kid>? list;
@@ -69,47 +69,47 @@ class _kidConfigurationState extends State<kidConfiguration> {
                 ),
               ),
               Flexible(
-                  child: FutureBuilder<List<Kid>> (
-                      future: loadSearch(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          //print(loadGroups());
-                          return ListView.builder (
-                              itemBuilder: (_, index) {
-                                var kid = snapshot.data![index];
-                                var kidFirstNames = kid.firstName;
-                                var kidLastNames = kid.lastName;
-                                var groupName = api.getGroupName(context, kid.groupID ?? 0);
-                                return ListTile(
-                                  leading: Icon(Icons.account_circle),
-                                  onTap: () {
-                                    Navigator.pushNamed(context, '/editKid',);
-                                  },
-                                  title: Text(kidFirstNames.toString()),
-                                  subtitle: Text(kidLastNames.toString()),
-                                  trailing: Text(groupName.toString()),
-                                );
-                              },
-                              itemCount: snapshot.data!.length
+                child: FutureBuilder<List<Kid>> (
+                    future: loadSearch(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        //print(loadGroups());
+                        return ListView.builder (
+                            itemBuilder: (_, index) {
+                              var kid = snapshot.data![index];
+                              var kidFirstNames = kid.firstName;
+                              var kidLastNames = kid.lastName;
+                              var groupName = api.getGroupName(context, kid.groupID ?? 0);
+                              return ListTile(
+                                leading: Icon(Icons.account_circle),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/editKid',);
+                                },
+                                title: Text(kidFirstNames.toString()),
+                                subtitle: Text(kidLastNames.toString()),
+                                trailing: Text(groupName.toString()),
+                              );
+                            },
+                            itemCount: snapshot.data!.length
+                        );
+                      } else {
+                        if (snapshot.hasError) {
+                          print('Error: ${snapshot.error}');
+                          return Column(
+                            children: [
+                              Icon(Icons.error_outline,
+                                color: Colors.red,
+                                size: 60,),
+                              Text("Error: ${snapshot.error}")
+                            ],
                           );
                         } else {
-                          if (snapshot.hasError) {
-                            print('Error: ${snapshot.error}');
-                            return Column(
-                              children: [
-                                Icon(Icons.error_outline,
-                                  color: Colors.red,
-                                  size: 60,),
-                                Text("Error: ${snapshot.error}")
-                              ],
-                            );
-                          } else {
-                            return CircularProgressIndicator();
-                          }
+                          return CircularProgressIndicator();
                         }
                       }
+                    }
 
-                  ),
+                ),
               ),
             ],
           )

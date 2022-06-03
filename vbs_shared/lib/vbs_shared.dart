@@ -147,3 +147,49 @@ class Attendance {
   }
 }
 
+class AddKid {
+  String? firstName;
+  String? lastName;
+  String? DOB;
+  int? grade;
+  String? familyName;
+  String? groupName;
+
+  Object toJSON() {
+    Object obj = {
+      'firstName': firstName,
+      'lastName': lastName,
+      'groupName': groupName,
+      'DOB': DOB,
+      'grade': grade,
+      'familyName': familyName
+    };
+    return obj;
+  }
+
+  static AddKid fromJSON(String json) {
+    var obj = jsonDecode(json);
+    return fromJSONObject(obj);
+  }
+
+  static AddKid fromJSONObject(Map<String,dynamic> obj) {
+    var kid = AddKid();
+    kid.groupName = obj["groupName"];
+    kid.firstName = obj["firstName"];
+    kid.lastName = obj["lastName"];
+    kid.DOB = obj["DOB"];
+    kid.grade = obj["grade"];
+    kid.familyName = obj["familyName"];
+    return kid;
+  }
+
+  static List<AddKid> fromJSONList(String json) {
+    List<AddKid> kids = [];
+    List<dynamic> objs = jsonDecode(json);
+    for(var obj in objs) {
+      var kid = fromJSONObject(obj);
+      kids.add(kid);
+    }
+    return kids;
+  }
+}

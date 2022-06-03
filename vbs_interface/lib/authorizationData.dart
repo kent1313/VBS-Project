@@ -88,4 +88,13 @@ class API {
         body: jsonEncode(attendance.toJSON())
     );
   }
+
+  Future addKid(context, AddKid kid) async {
+    var response = await sendMessage(
+        context: context,
+        method: 'post',
+        path: 'addKid',
+        body: jsonEncode(kid.toJSON())
+    );
+  }
 }

@@ -65,6 +65,13 @@ class _homePageState extends State<homePage> {
               },
             ),
           ListTile(
+            leading: Icon(Icons.admin_panel_settings),
+            title: Text('Users'),
+            onTap: () {
+              Navigator.pushNamed(context, '/users');
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.person),
             title: Text('Kids'),
             onTap: () {

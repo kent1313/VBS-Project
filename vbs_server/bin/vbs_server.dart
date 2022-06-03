@@ -296,8 +296,40 @@ void main() async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
-    var kid = Kid.fromJSONObject(jsonDecode(body));
-    print(kid);
+    var kid = AddKid.fromJSONObject(jsonDecode(body));
+
+    int? groupID;
+    var getGroupID = await conn.execute(""
+        "select groupID from tblGroup where groupName = :groupName;",
+    {'groupName': kid.groupName});
+
+    for (final row in getGroupID.rows) {
+      groupID = row.typedAssoc()['groupID'];
+    }
+
+    int? familyID;
+    var getFamilyID = await conn.execute(""
+        "select familyID from tblFamily where familyName = :familyName;",
+        {'familyName': kid.familyName});
+
+    for (final row in getFamilyID.rows) {
+      familyID = row.typedAssoc()['familyID'];
+    }
+
+    var addKid = await conn.execute(
+        "insert into tblKid (familyID, DOB, grade, firstName, lastName, groupID)"
+        "values (:familyID, :DOB, :grade, :firstName, :lastName, :groupID);",
+      {
+        'familyID': familyID,
+        'DOB': kid.DOB,
+        'grade': kid.grade,
+        'firstName': kid.firstName,
+        'lastName': kid.lastName,
+        'groupID': groupID,
+      }
+    );
+
+
     conn.close();
     return Response.ok('hello-world');
   });
