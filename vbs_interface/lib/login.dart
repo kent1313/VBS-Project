@@ -111,6 +111,7 @@ class _LoginState extends State<Login> {
     var response = await http.post(url, body: convert.jsonEncode(data));
     if(response.statusCode == 200) {
       token = convert.jsonDecode(response.body)['token'];
+      api.admin = convert.jsonDecode(response.body)['admin'];
       api.token = token;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);

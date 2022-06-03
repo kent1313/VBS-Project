@@ -58,7 +58,7 @@ class _kidConfigurationState extends State<kidConfiguration> {
                 child: TextField(
                   controller: search,
                   onChanged: submitSearch,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Search',
                     icon: Icon(Icons.search),
@@ -83,7 +83,7 @@ class _kidConfigurationState extends State<kidConfiguration> {
                                 var kidLastNames = kid.lastName;
                                 var groupName = api.getGroupName(context, kid.groupID ?? 0);
                                 return ListTile(
-                                  leading: Icon(Icons.account_circle),
+                                  leading: const Icon(Icons.account_circle),
                                   onTap: () {
                                     // SKP -- changed to add kid so we only use 1 screen
                                     //  also added the kid argument

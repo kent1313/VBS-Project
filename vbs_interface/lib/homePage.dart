@@ -58,13 +58,6 @@ class _homePageState extends State<homePage> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.login),
-            title: Text('Login'),
-            onTap: () {
-              Navigator.pushNamed(context, '/login');
-              },
-            ),
-          ListTile(
             leading: Icon(Icons.admin_panel_settings),
             title: Text('Users'),
             onTap: () {
@@ -79,19 +72,33 @@ class _homePageState extends State<homePage> {
             },
           ),
           ListTile(
-          leading: Icon(Icons.group),
-          title: Text('Groups'),
-          onTap: () {
-          Navigator.pushNamed(context, '/groups');
-          },
-        ),
+            leading: Icon(Icons.group),
+            title: Text('Groups'),
+            onTap: () {
+            Navigator.pushNamed(context, '/groups');
+            },
+          ),
           ListTile(
-          leading: Icon(Icons.close),
-          title: Text('Close'),
-          onTap: () {
-          Navigator.pop(context);
-          },
-        ),
+            leading: api.isLoggedIn ? Icon(Icons.logout): Icon(Icons.login),
+            title: api.isLoggedIn ? Text('Logout'): Text('Login'),
+            onTap: () {
+              if(api.isLoggedIn) {
+                api.token = '';
+                setState(() {});
+                Navigator.pop(context);
+              } else {
+                setState(() {});
+                Navigator.pushNamed(context, '/login');
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.close),
+            title: Text('Close'),
+            onTap: () {
+            Navigator.pop(context);
+            },
+          ),
       ],
     ),
   ),
