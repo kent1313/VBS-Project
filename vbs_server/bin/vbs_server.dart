@@ -317,9 +317,11 @@ void main() async {
       } else {
         visitors = attendance.visitors;
       }
+
       var execution = await conn.execute("select count(*) rowCount from tblAttendance"
-          " where kidID = kidID and today = :today;",
+          " where kidID = :kidID and today = :today;",
           {'kidID': attendance.kidID, 'today': attendance.today});
+      print('DB-response: ${execution.rows.first.typedAssoc()["rowCount"]}');
       if(execution.rows.first.typedAssoc()["rowCount"] == 0) {
         var action = await conn.execute(
             "insert into tblAttendance (today, kidID, verse, visitors, leaderID)"
@@ -415,6 +417,20 @@ void main() async {
           }
       );
     }
+
+    conn.close();
+    return Response.ok('hello-world');
+  });
+
+  app.post('/addGroup', (Request request) async {
+    final body = await request.readAsString();
+    final conn = await config.connectToDatabase();
+
+    var group = Group.fromJSONObject(jsonDecode(body));
+
+      var execution = await conn.execute("insert into tblGroup (groupName, mainLeaderID)"
+          "values (:groupName, :mainLeaderID)",
+          {'groupName': group.groupName, 'mainLeaderID': group.mainLeaderID});
 
     conn.close();
     return Response.ok('hello-world');

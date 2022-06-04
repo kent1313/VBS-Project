@@ -66,8 +66,13 @@ class _AddGroupState extends State<AddGroup> {
                             r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
                             r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
                       ],
+                      onChanged: (newValue) {
+                        badInput = false;
+                        setState(() {});
+                      },
                     ),
                   ),
+                  /*
                   Align(
                     alignment: Alignment.center,
                     child: Container(
@@ -96,9 +101,14 @@ class _AddGroupState extends State<AddGroup> {
                         )
                     ),
                   ),
-                  ElevatedButton(
-                      onPressed: createKid,
-                      child: const Text('Submit')
+
+                   */
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                    child: ElevatedButton(
+                        onPressed: createKid,
+                        child: const Text('Submit')
+                    ),
                   ),
                 ]
             )
@@ -107,16 +117,33 @@ class _AddGroupState extends State<AddGroup> {
   }
 
   createKid() {
-    if (groupName.text == '') {
+    var group = Group();
+    group.groupID = -1;
+    group.groupName = groupName.text;
+    group.mainLeaderID = -1;
+
+    if (groupName.text.length <= 2) {
       badInput = true;
-      message = 'Each group must have a name';
+      message = 'Each group must have valid a name';
+      print('group name is invalid');
       setState(() {});
     } else {
+      /*
       if (mainLeader == 'Pick a Primary Leader') {
         badInput = true;
         message = 'Each group must have a primary leader';
         setState(() {});
+      } else {
+       */
+      if(groupName.text.length >= 25) {
+        badInput = true;
+        message = 'Each group must have valid a name';
+        setState(() {});
+      } else {
+        api.addGroup(context, group);
+        Navigator.pop(context);
       }
+//      }
     }
   }
 }

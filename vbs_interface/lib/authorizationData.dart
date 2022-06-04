@@ -92,6 +92,15 @@ class API {
     );
   }
 
+  Future addGroup(context, Group group) async {
+    var response = await sendMessage(
+        context: context,
+        method: 'post',
+        path: 'addGroup',
+        body: jsonEncode(group.toJSON())
+    );
+  }
+
   Future addKid(context, AddKid kid) async {
     var response = await sendMessage(
         context: context,

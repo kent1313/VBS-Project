@@ -57,7 +57,7 @@ class _KidsState extends State<Kids> {
                           onTap: () {
                             var parm = KidDataParameter(attendance: attendance);
                             Navigator.pushNamed(context, '/kidData', arguments: parm,
-                            );
+                            ).then((value) => setState(() {}));
                           },
                           title: Text(kidFirstNames.toString()),
                           subtitle: Text(kidLastNames.toString()),
