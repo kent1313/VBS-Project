@@ -47,7 +47,7 @@ void main() async {
     return Response.ok('hello-world');
   });
 
-  app.get('/groupNames', (Request request) async {
+  app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select * from tblGroup;');
@@ -70,7 +70,7 @@ void main() async {
         );
   });
 
-  app.get('/kidNames', (Request request) async {
+  app.get('${config.prefix}/kidNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select k.*, g.groupName '
@@ -98,7 +98,7 @@ void main() async {
         );
   });
 
-  app.get('/kidSearch/<search>', (Request request, String search) async {
+  app.get('${config.prefix}/kidSearch/<search>', (Request request, String search) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select k.*, g.groupName '
@@ -137,7 +137,7 @@ void main() async {
     );
   });
 
-  app.get('/getGroupName/<groupID>', (Request request, String groupID) async {
+  app.get('${config.prefix}/getGroupName/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select * from tblGroup where groupID = :groupID;',
@@ -175,7 +175,7 @@ void main() async {
     );
   });
 
-  app.get('/kidNames/<groupID>', (Request request, String groupID) async {
+  app.get('${config.prefix}/kidNames/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute(
@@ -203,7 +203,7 @@ void main() async {
         );
   });
 
-  app.get('/myKids', (Request request) async {
+  app.get('${config.prefix}/myKids', (Request request) async {
     final conn = await config.connectToDatabase();
 
     String user = (request.context["payload"]! as ContextPayload).user;
@@ -237,7 +237,7 @@ void main() async {
     );
   });
 
-  app.get('/group/<groupID>/<date>',
+  app.get('${config.prefix}/group/<groupID>/<date>',
       (Request request, String groupID, date) async {
     final conn = await config.connectToDatabase();
 
@@ -294,7 +294,7 @@ void main() async {
     );
   });
 
-  app.post('/updateAttendance', (Request request) async {
+  app.post('${config.prefix}/updateAttendance', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
@@ -346,7 +346,7 @@ void main() async {
     return Response.ok('hello-world');
   });
 
-  app.post('/addKid', (Request request) async {
+  app.post('${config.prefix}/addKid', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
@@ -422,7 +422,7 @@ void main() async {
     return Response.ok('hello-world');
   });
 
-  app.post('/addGroup', (Request request) async {
+  app.post('${config.prefix}/addGroup', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 

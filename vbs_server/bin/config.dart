@@ -14,6 +14,7 @@ class Config {
   String jwtSecret = "";
   String jwtIssuer = "";
   String jwtAudience = "";
+  String prefix = "";
 
   load() async {
     var contents = await File("secrets.json").readAsString();
@@ -27,6 +28,9 @@ class Config {
     jwtSecret = settings["jwt_secret"];
     jwtIssuer = settings["jwt_issuer"];
     jwtAudience = settings["jwp_audience"];
+    if(settings["prefix"] != null) {
+      prefix = settings["prefix"];
+    }
   }
 
   Future<MySQLConnection> connectToDatabase() async {

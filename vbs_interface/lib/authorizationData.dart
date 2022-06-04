@@ -40,6 +40,10 @@ class API {
     }
   }
 
+  // ------------------------------------
+  //    This is the main send message routine that everything goes through
+  //     Note: login doesn't go through here yet, but it should
+  // ------------------------------------
   Future <String> sendMessage({required BuildContext context,
     required String path,
     String method = 'get',
@@ -55,6 +59,11 @@ class API {
       } else {
         api.token = token;
       }
+    }
+
+    // make sure we don't get a double slash
+    if(path.startsWith("/")) {
+      path = path.substring(1);
     }
 
     late Uri url;

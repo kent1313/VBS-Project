@@ -9,7 +9,7 @@ import 'config.dart';
 
 class SetupRoutes {
   static addRoutes(Router app) {
-    app.post('/updateUser', (Request request) async {
+    app.post('${config.prefix}/updateUser', (Request request) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
 
@@ -53,7 +53,7 @@ class SetupRoutes {
 
     });
 
-    app.post('/updateLeader', (Request request) async {
+    app.post('${config.prefix}/updateLeader', (Request request) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
       
