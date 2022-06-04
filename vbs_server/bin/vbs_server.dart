@@ -73,7 +73,8 @@ void main() async {
   app.get('/kidNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select * from tblKid;');
+    var results = await conn.execute('select k.*, g.groupName '
+        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -82,10 +83,10 @@ void main() async {
       kid.kidID = int.parse(row.colByName("kidID") ?? '0');
       kid.firstName = row.colByName("firstName");
       kid.lastName = row.colByName("lastName");
-      kid.DOB = row.colByName('DOB');
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
+      kid.groupName = row.colByName("groupName");
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -100,7 +101,8 @@ void main() async {
   app.get('/kidSearch/<search>', (Request request, String search) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select * from tblKid;');
+    var results = await conn.execute('select k.*, g.groupName '
+        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
     var data = [];
     String first = '';
     String last = '';
@@ -112,13 +114,21 @@ void main() async {
         kid.kidID = int.parse(row.colByName("kidID") ?? '0');
         kid.firstName = row.colByName("firstName");
         kid.lastName = row.colByName("lastName");
-        kid.DOB = row.colByName('DOB');
         kid.groupID = int.parse(row.colByName("groupID") ?? '0');
         kid.familyID = int.parse(row.colByName("familyID") ?? '0');
         kid.grade = int.parse(row.colByName("grade") ?? '0');
-        // print all rows as Map<String, String>
-        //print(row);
-        data.add(kid.toJSON());
+        kid.groupName = row.colByName("groupName");
+
+        if(kid.firstName!.length >= search.length) {
+          if(kid.firstName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
+            data.add(kid.toJSON());
+          }
+        }
+        if(kid.lastName!.length >= search.length) {
+          if(kid.lastName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
+            data.add(kid.toJSON());
+          }
+        }
       }
     //print(data);
     conn.close();
@@ -179,7 +189,6 @@ void main() async {
       kid.kidID = int.parse(row.colByName("kidID") ?? '0');
       kid.firstName = row.colByName("firstName");
       kid.lastName = row.colByName("lastName");
-      kid.DOB = row.colByName('DOB');
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
@@ -214,7 +223,6 @@ void main() async {
       kid.kidID = int.parse(row.colByName("kidID") ?? '0');
       kid.firstName = row.colByName("firstName");
       kid.lastName = row.colByName("lastName");
-      kid.DOB = row.colByName('DOB');
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
@@ -246,7 +254,7 @@ void main() async {
 
     var results2 = await conn.execute(
         ""
-        "select k.kidID, k.familyID, k.DOB, k.grade, k.firstName, k.lastName, k.groupID, "
+        "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, "
         "case when a.today is null then 'N' else "
         "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID "
         "from tblKid k left outer join tblAttendance a on k.kidID = a.kidID "
@@ -259,7 +267,6 @@ void main() async {
       attend.kid!.kidID = row.typedAssoc()['kidID'];
       attend.kid!.firstName = row.typedAssoc()['firstName'];
       attend.kid!.lastName = row.typedAssoc()['lastName'];
-      attend.kid!.DOB = row.typedAssoc()['DOB'];
       attend.kid!.grade = row.typedAssoc()['grade'];
       attend.kid!.familyID = row.typedAssoc()['familyID'];
       attend.kid!.groupID = row.typedAssoc()['groupID'];
@@ -293,8 +300,6 @@ void main() async {
 
     var attendance = Attendance.fromJSONObject(jsonDecode(body));
 
-    print("attedance = ${attendance.toJSON()}");
-    print("here = ${attendance.here}");
     if(attendance.here == false) {
       var action = await conn.execute(
         "delete from tblAttendance where kidID = :kidID and today = :today",
@@ -306,23 +311,33 @@ void main() async {
       } else {
         verse = 'N';
       }
+      int? visitors;
+      if(attendance.visitors == null) {
+        visitors = 0;
+      } else {
+        visitors = attendance.visitors;
+      }
       var execution = await conn.execute("select count(*) rowCount from tblAttendance"
           " where kidID = kidID and today = :today;",
           {'kidID': attendance.kidID, 'today': attendance.today});
       if(execution.rows.first.typedAssoc()["rowCount"] == 0) {
         var action = await conn.execute(
             "insert into tblAttendance (today, kidID, verse, visitors, leaderID)"
-                "values (:today, :kidID, :verse, 0, 2);",
+                "values (:today, :kidID, :verse, :visitors, 2);",
             {
               'kidID': attendance.kidID,
               'today': attendance.today,
-              'verse': verse
+              'verse': verse,
+              'visitors': visitors,
             });
         print("action = $action");
       } else {
-        var action = await conn.execute("update tblAttendance set verse = :verse"
+        var action1 = await conn.execute("update tblAttendance set verse = :verse"
             " where kidID = :kidID and today = :today;",
             {'kidID': attendance.kidID, 'today': attendance.today, 'verse': verse});
+        var action2 = await conn.execute("update tblAttendance set visitors = :visitors"
+            " where kidID = :kidID and today = :today;",
+            {'kidID': attendance.kidID, 'today': attendance.today, 'visitors': visitors});
       }
     }
     conn.close();
@@ -333,7 +348,7 @@ void main() async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
-    var kid = AddKid.fromJSONObject(jsonDecode(body));
+    var kid = Kid.fromJSONObject(jsonDecode(body));
 
     int? groupID;
     var getGroupID = await conn.execute(""
@@ -344,28 +359,62 @@ void main() async {
       groupID = row.typedAssoc()['groupID'];
     }
 
-    int? familyID;
-    var getFamilyID = await conn.execute(""
-        "select familyID from tblFamily where familyName = :familyName;",
-        {'familyName': kid.familyName});
+    var checkFamily = await conn.execute('select * from tblFamily where familyName = :familyName',
+    {'familyName': kid.family!.familyName});
 
-    for (final row in getFamilyID.rows) {
-      familyID = row.typedAssoc()['familyID'];
-    }
+    if(checkFamily.rows.isEmpty) {
+      int? familyID;
+      var addFamily = await conn.execute(
+          "insert into tblFamily (familyName, address, phone, email)"
+              "values (:familyName, :address, :phone, :email);",
+          {
+            'familyName': kid.family!.familyName,
+            'address': kid.family!.address,
+            'phone': kid.family!.phone,
+            'email': kid.family!.email,
+          }
+      );
 
-    var addKid = await conn.execute(
-        "insert into tblKid (familyID, DOB, grade, firstName, lastName, groupID)"
-        "values (:familyID, :DOB, :grade, :firstName, :lastName, :groupID);",
-      {
-        'familyID': familyID,
-        'DOB': kid.DOB,
-        'grade': kid.grade,
-        'firstName': kid.firstName,
-        'lastName': kid.lastName,
-        'groupID': groupID,
+      var getFamilyID = await conn.execute('select familyID from tblFamily where familyName = :familyName',
+          {'familyName': kid.family!.familyName});
+
+      for (final row in getFamilyID.rows) {
+        familyID = row.typedAssoc()['familyID'];
       }
-    );
 
+      var addKid = await conn.execute(
+          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
+              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
+          {
+            'familyID': familyID,
+            'grade': kid.grade,
+            'firstName': kid.firstName,
+            'lastName': kid.lastName,
+            'groupID': groupID,
+          }
+      );
+    } else {
+      int? familyID;
+      var getFamilyID = await conn.execute(""
+          "select familyID from tblFamily where familyName = :familyName;",
+          {'familyName': kid.family!.familyName});
+
+      for (final row in getFamilyID.rows) {
+        familyID = row.typedAssoc()['familyID'];
+      }
+
+      var addKid = await conn.execute(
+          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
+              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
+          {
+            'familyID': familyID,
+            'grade': kid.grade,
+            'firstName': kid.firstName,
+            'lastName': kid.lastName,
+            'groupID': groupID,
+          }
+      );
+    }
 
     conn.close();
     return Response.ok('hello-world');

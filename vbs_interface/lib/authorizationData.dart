@@ -9,7 +9,7 @@ final api = API();
 
 class API {
   String? token;
-  bool admin = false;
+  String admin = 'none';
 
   Future <String> sendMessage({required BuildContext context,
     required String path,

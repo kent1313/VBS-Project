@@ -7,7 +7,6 @@ import 'login.dart';
 import 'homePage.dart';
 import 'kidConfiguration.dart';
 import 'addKid.dart';
-import 'editKid.dart';
 import 'addGroup.dart';
 import 'users.dart';
 import 'authorizationData.dart';
@@ -44,7 +43,6 @@ class MyApp extends StatelessWidget {
           "/kids": (context) => const Kids(title: 'Kids'),
           "/users": (context) => const userConfiguration(title: 'Users'),
           "/addGroup": (context) => const AddGroup(title: 'New Group'),
-          "/editKid": (context) => const EditKid(title: 'Change Kid'),
           "/kidData": (context) => const KidData(title: 'Test'),
           "/groups": (context) => const Groups(title: 'Groups'),
           "/login": (context) => const Login(title: 'Login'),

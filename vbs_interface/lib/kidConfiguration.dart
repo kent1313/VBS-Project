@@ -46,7 +46,11 @@ class _kidConfigurationState extends State<kidConfiguration> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
+          if(api.admin == 'none') {
+            permissionDenied2();
+          } else {
+            Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
+          }
         },
         child: Icon(Icons.person_add),
       ),
@@ -81,13 +85,17 @@ class _kidConfigurationState extends State<kidConfiguration> {
                                 var kid = snapshot.data![index];
                                 var kidFirstNames = kid.firstName;
                                 var kidLastNames = kid.lastName;
-                                var groupName = api.getGroupName(context, kid.groupID ?? 0);
+                                var groupName = kid.groupName;
                                 return ListTile(
                                   leading: const Icon(Icons.account_circle),
                                   onTap: () {
                                     // SKP -- changed to add kid so we only use 1 screen
                                     //  also added the kid argument
-                                    Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
+                                    if(api.admin == 'none') {
+                                      permissionDenied1();
+                                    } else {
+                                      Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
+                                    }
                                   },
                                   title: Text(kidFirstNames.toString()),
                                   subtitle: Text(kidLastNames.toString()),
@@ -121,6 +129,48 @@ class _kidConfigurationState extends State<kidConfiguration> {
     );
   }
 
+  Future permissionDenied1() async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'You do not have permission to edit kids. Please check with an administrator to continue.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future permissionDenied2() async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'You do not have permission to add kids. Please check with an administrator to continue.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<List<Kid>> loadSearch() async {
     if(search.text.isEmpty) {
       if(groups == null || list == null) {
@@ -135,9 +185,8 @@ class _kidConfigurationState extends State<kidConfiguration> {
     }
   }
   submitSearch(newValue) {
-    setState(() {
-
-    });
+    print('State reset');
+    setState(() {});
   }
 }
 

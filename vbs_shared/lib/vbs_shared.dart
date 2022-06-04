@@ -43,11 +43,11 @@ class Kid {
   int? kidID;
   String? firstName;
   String? lastName;
-  String? DOB;
   int? grade;
   int? familyID;
   Family? family;
   int? groupID;
+  String? groupName;
 
   Object toJSON() {
     Object obj = {
@@ -55,10 +55,10 @@ class Kid {
       'firstName': firstName,
       'lastName': lastName,
       'groupID': groupID,
-      'DOB': DOB,
       'grade': grade,
       'familyID': familyID,
       'family': family == null ? null : family!.toJSON(),
+      'groupName': groupName,
     };
     return obj;
   }
@@ -73,9 +73,9 @@ class Kid {
     kid.groupID = obj["groupID"];
     kid.firstName = obj["firstName"];
     kid.lastName = obj["lastName"];
-    kid.DOB = obj["DOB"];
     kid.grade = obj["grade"];
     kid.familyID = obj["familyID"];
+    kid.groupName = obj["groupName"];
     if(obj["family"] != null) {
       kid.family = Family.fromJSONObect(obj["family"]);
     }
@@ -127,6 +127,7 @@ class Attendance {
   int? kidID;
   bool? verse;
   bool? here;
+  int? visitors;
 
   Object toJSON() {
     Object obj = {
@@ -135,6 +136,7 @@ class Attendance {
       'kidID': kidID,
       'verse': verse,
       'here': here,
+      'visitors': visitors,
     };
     return obj;
   }
@@ -145,6 +147,7 @@ class Attendance {
     data.today = json['today'];
     data.here = json['here'];
     data.verse = json['verse'];
+    data.visitors = json['visitors'];
     if(json['kid'] != null) {
       data.kid = Kid.fromJSONObject(json['kid']);
     }
@@ -155,17 +158,16 @@ class Attendance {
 class AddKid {
   String? firstName;
   String? lastName;
-  String? DOB;
   int? grade;
   String? familyName;
   String? groupName;
+  Family? family;
 
   Object toJSON() {
     Object obj = {
       'firstName': firstName,
       'lastName': lastName,
       'groupName': groupName,
-      'DOB': DOB,
       'grade': grade,
       'familyName': familyName
     };
@@ -182,7 +184,6 @@ class AddKid {
     kid.groupName = obj["groupName"];
     kid.firstName = obj["firstName"];
     kid.lastName = obj["lastName"];
-    kid.DOB = obj["DOB"];
     kid.grade = obj["grade"];
     kid.familyName = obj["familyName"];
     return kid;
