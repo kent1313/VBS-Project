@@ -27,7 +27,6 @@ class homePage extends StatefulWidget {
 class _homePageState extends State<homePage> {
   int selectedIndex = 0;
 
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -36,84 +35,72 @@ class _homePageState extends State<homePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
-    ),
-    drawer: Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
-            child: Text(
-              'Navigation',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Navigation',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
               ),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.admin_panel_settings),
-            title: Text('Users'),
-            onTap: () {
-              if(api.admin == 'full') {
-                Navigator.pushNamed(context, '/users');
-              } else {
-                permissionDenied();
-              }
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Kids'),
-            onTap: () {
-              Navigator.pushNamed(context, '/kidConfiguration');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.group),
-            title: Text('Groups'),
-            onTap: () {
-            Navigator.pushNamed(context, '/groups');
-            },
-          ),
-          ListTile(
-            leading: api.isLoggedIn ? Icon(Icons.logout): Icon(Icons.login),
-            title: api.isLoggedIn ? Text('Logout'): Text('Login'),
-            onTap: () {
-              if(api.isLoggedIn) {
-                api.token = '';
-                setState(() {});
+            Visibility(
+              visible: api.admin == 'full',
+              child: ListTile(
+                leading: Icon(Icons.admin_panel_settings),
+                title: Text('Users'),
+                onTap: () {
+                  if (api.admin == 'full') {
+                    Navigator.pushNamed(context, '/users').then((value) => setState((){}));
+                  } else {
+                    permissionDenied();
+                  }
+                },
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Kids'),
+              onTap: () {
+                Navigator.pushNamed(context, '/kidConfiguration').then((value) => setState((){}));
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.group),
+              title: Text('Groups'),
+              onTap: () {
+                Navigator.pushNamed(context, '/groups').then((value) => setState((){}));
+              },
+            ),
+            LoginLogoutTile(),
+            ListTile(
+              leading: Icon(Icons.close),
+              title: Text('Close'),
+              onTap: () {
                 Navigator.pop(context);
-              } else {
-                setState(() {});
-                Navigator.pushNamed(context, '/login');
-              }
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.close),
-            title: Text('Close'),
-            onTap: () {
-            Navigator.pop(context);
-            },
-          ),
-      ],
-    ),
-  ),
-
-        body: Center(
-        child: FloatingActionButton(
-        onPressed: null,
-        )
+              },
+            ),
+          ],
         ),
-      );
-    }
+      ),
+      body: Center(
+          child: FloatingActionButton(
+        onPressed: null,
+      )),
+    );
+  }
 
   Future permissionDenied() async {
     await showDialog<void>(
@@ -134,5 +121,49 @@ class _homePageState extends State<homePage> {
         );
       },
     );
+  }
+}
+
+class LoginLogoutTile extends StatefulWidget {
+  @override
+  State<LoginLogoutTile> createState() => _LoginLogoutTileState();
+}
+
+class _LoginLogoutTileState extends State<LoginLogoutTile> {
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: api.isLoggedIn ? Icon(Icons.logout) : Icon(Icons.login),
+      title: api.isLoggedIn ? Text('Logout') : Text('Login'),
+      onTap: () {
+        if (api.isLoggedIn) {
+          api.token = '';
+          setState(() {});
+          Navigator.pop(context);
+        } else {
+          setState(() {});
+          Navigator.pushNamed(context, '/login');
+        }
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    api.addTokenListener(listener);
+  }
+
+  @override
+  void dispose() {
+    // You have to remove the listener (kind of deteats the point of listening)
+    // otherwise you get an error trying to call set state on a dead state
+    api.removeTokenListener(listener);
+    super.dispose();
+  }
+
+  void listener() {
+    setState((){});
   }
 }

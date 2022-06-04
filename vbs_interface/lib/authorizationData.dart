@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 final api = API();
 
 class API {
-  String? token;
+  final ValueNotifier<String> _token = ValueNotifier<String>("");
   String admin = 'none';
 
   Future <String> sendMessage({required BuildContext context,
@@ -32,13 +32,15 @@ class API {
     Uri.http('localhost:8080', path);
     var response;
     if(method == 'get') {
-      response = await http.get(url, headers: {'authorization': token!});
+      response = await http.get(url, headers: {'authorization': token});
     } else {
-      response = await http.post(url, headers: {'authorization': token!}, body: body);
+      response = await http.post(url, headers: {'authorization': token}, body: body);
     }
     if(response.statusCode == 403) {
-      Navigator.pushNamed(context, '/login');
-      throw Exception('You need to log in');
+      // The await makes it hold until the login is complete,
+      // then return the response
+      await Navigator.pushNamed(context, '/login');
+      return sendMessage(context: context, path: path, method: method, body: body);
     }
     return response.body;
   }
@@ -99,8 +101,24 @@ class API {
     );
   }
 
+  String get token {
+    return _token.value;
+  }
+
+  set token(String newValue) {
+    _token.value = newValue;
+  }
+
+  addTokenListener(newListener) {
+    _token.addListener(newListener);
+  }
+
+  removeTokenListener(listener) {
+    _token.removeListener(listener);
+  }
+
   get isLoggedIn {
-    if(token == null || token!.isEmpty) {
+    if(_token.value.isEmpty) {
       return false;
     } else {
       return true;
