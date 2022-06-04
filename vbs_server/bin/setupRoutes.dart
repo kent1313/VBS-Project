@@ -23,7 +23,7 @@ class SetupRoutes {
       }
       if (action.rows.first.typedAssoc()["count"] == 0) {
         action = await conn.execute(
-            "insert into tblUser (userName, password, leaderID, systemAdmin) values (:user, md(:password), :leaderID, :systemAdmin)",
+            "insert into tblUser (userName, password, leaderID, systemAdmin) values (:user, md5(:password), :leaderID, :systemAdmin)",
             {
               "user": user.userName,
               "password": user.password,

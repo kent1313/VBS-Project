@@ -27,6 +27,7 @@ class _KidDataState extends State<KidData> {
   bool isHere = false;
   Attendance? attendance;
   TextEditingController visitors = TextEditingController();
+  dynamic today = DateTime.now();
 
 
   @override
@@ -35,6 +36,7 @@ class _KidDataState extends State<KidData> {
     if(attendance == null) {
       attendance = args.attendance;
     }
+    attendance!.today = today.toString().substring(0,10);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     // The Flutter framework has been optimized to make rerunning build methods
@@ -110,6 +112,12 @@ class _KidDataState extends State<KidData> {
                               border: OutlineInputBorder(),
                               //labelText: 'Visitors',
                             ),
+                            onChanged: (value) {
+                              setState(() {
+                                attendance!.visitors = int.parse(visitors.text);
+                                api.updateAttendance(context, attendance!);
+                              });
+                            },
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
                             ],

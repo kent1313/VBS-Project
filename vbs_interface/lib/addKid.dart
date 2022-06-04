@@ -35,6 +35,7 @@ class _AddKidState extends State<AddKid> {
   Family family = Family();
   List<Group> groups = [];
   List<Kid> familyMembers = [];
+  bool existingFamily = false;
 
   var grades = const [
     {"id": null, "label": "Pick a grade"},
@@ -106,7 +107,7 @@ class _AddKidState extends State<AddKid> {
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: Text(firstName.text.isEmpty && lastName.text.isEmpty ? "New Kid" : "Editing: ${firstName.text} ${lastName.text}"),
+          title: Text((firstName.text.isEmpty && lastName.text.isEmpty) || badInput == true ? "New Kid" : "Editing: ${firstName.text} ${lastName.text}"),
         ),
         body: Center(
           child: Align(
@@ -136,7 +137,7 @@ class _AddKidState extends State<AddKid> {
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.allow(RegExp(
                                   r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
                             ],
                           ),
                         ),
@@ -153,7 +154,7 @@ class _AddKidState extends State<AddKid> {
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.allow(RegExp(
                                   r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
                             ],
                           ),
                         ),
@@ -163,11 +164,39 @@ class _AddKidState extends State<AddKid> {
                 ),
                 Container(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  child: Visibility(
+                    visible: familyMembers.length == 1,
+                    child: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            if(existingFamily) {
+                              existingFamily = false;
+                              setState(() {});
+                            } else {
+                              existingFamily = true;
+                              setState(() {});
+                            }
+                          },
+                          child: Text(existingFamily ? 'Create new family': 'Use existing family'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
                   child: TextField(
+                    enabled: existingFamily ? false: true,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Address',
                     ),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(
+                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ,1,2,3,4,5,6,7,8,9,0,.]'))
+                    ],
                     controller: address,
                     maxLines: 4,
                   ),
@@ -178,6 +207,7 @@ class _AddKidState extends State<AddKid> {
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(10, 10, 5, 5),
                         child: TextField(
+                          enabled: existingFamily ? false: true,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Phone',
@@ -185,7 +215,7 @@ class _AddKidState extends State<AddKid> {
                           controller: phone,
                           inputFormatters: <TextInputFormatter>[
                             FilteringTextInputFormatter.allow(RegExp(
-                                r'[1,2,3,4,5,6,7,8,9,0,-]'))
+                                r'[1,2,3,4,5,6,7,8,9,0]'))
                           ],
                         ),
                       ),
@@ -194,10 +224,16 @@ class _AddKidState extends State<AddKid> {
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(5, 10, 10, 5),
                         child: TextField(
+                          enabled: existingFamily ? false: true,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Email',
                           ),
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.allow(RegExp(
+                                r'[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, '
+                                r',1,2,3,4,5,6,7,8,9,0,.,!,@,#,$,%,^,&,*,(,),{,},[,],?,-,_,+,=,~]'))
+                          ],
                           controller: email,
                         ),
                       ),
@@ -320,7 +356,6 @@ class _AddKidState extends State<AddKid> {
                               ),
                             ],
                           ),
-
                         ],
                       ),
                     ),
@@ -334,7 +369,38 @@ class _AddKidState extends State<AddKid> {
   }
 
   saveKid() {
-
+    int counter = 0;
+    if(firstName.text == '' || firstName.text.length >= 25) {
+      badInput = true;
+      message = 'Each kid must have a valid first name';
+      setState((){});
+    } else {
+      if(lastName.text == '' || lastName.text.length >= 25) {
+        badInput = true;
+        message = 'Each kid must have a valid last name';
+        setState((){});
+      } else {
+        if(address.text == '' || address.text.length >= 45) {
+          badInput = true;
+          message = 'Each family must have a valid home address';
+          setState((){});
+        } else {
+          if(phone.text == '' || phone.text.length != 9) {
+            badInput = true;
+            message = 'Each family must have a valid phone number';
+            setState((){});
+          } else {
+            if(email.text == '' || email.text.length >= 30) {
+              badInput = true;
+              message = 'Each family must have a valid email address';
+              setState((){});
+            } else {
+              Navigator.pop(context);
+            }
+          }
+        }
+      }
+    }
   }
 
   newFamilyMember() {
