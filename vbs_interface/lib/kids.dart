@@ -42,7 +42,7 @@ class _KidsState extends State<Kids> {
           // Center is a layout widget. It takes a single child and positions it
           // in the middle of the parent.
           child: FutureBuilder<GroupData> (
-              future: api.loadKids(args.groupID, context),
+              future: api.loadKids(args.groupID, context, Date.today()),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   //print(loadGroups());
@@ -61,7 +61,7 @@ class _KidsState extends State<Kids> {
                           },
                           title: Text(kidFirstNames.toString()),
                           subtitle: Text(kidLastNames.toString()),
-                          trailing: kidIsHere(here),
+                          trailing: here ? Icon(Icons.check): Icon(Icons.close),
                         );
                       },
                       itemCount: snapshot.data!.attendance.length
@@ -91,15 +91,6 @@ class _KidsState extends State<Kids> {
 
     );
   }}
-
-
-kidIsHere(x) {
-  if(x == true) {
-    return Icon(Icons.check);
-  } else {
-    return Icon(Icons.close);
-  }
-}
 
 class KidParameter {
   final int groupID;

@@ -55,8 +55,8 @@ class API {
     return groups;
   }
 
-  Future<GroupData> loadKids(int groupID, context) async {
-    var response = await sendMessage(context: context, path: '/group/$groupID/2022-05-18');
+  Future<GroupData> loadKids(int groupID, context, Date today) async {
+    var response = await sendMessage(context: context, path: '/group/$groupID/${today.makeString()}');
     var kids = GroupData.fromJSONObject(jsonDecode(response));
     return kids;
   }
@@ -105,5 +105,24 @@ class API {
     } else {
       return true;
     }
+  }
+}
+
+class Date {
+  late int year;
+  late int month;
+  late int day;
+
+  Date({required this.year, required this.month, required this.day});
+
+  String makeString() {
+    return '${year.toString()}-${month.toString()}-${day.toString()}';
+  }
+
+  Date.today() {
+    var now = DateTime.now();
+    year = now.year;
+    month = now.month;
+    day = now.day;
   }
 }
