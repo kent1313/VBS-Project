@@ -66,7 +66,6 @@ class _KidDataState extends State<KidData> {
                       api.updateAttendance(context, attendance!);
                       isHere = value!;
                     });
-                    print(value);
                   },
                 )
               ),
@@ -104,7 +103,7 @@ class _KidDataState extends State<KidData> {
                           height: 70.0,
                           child: TextField(
                             maxLength: 2,
-                            enabled: isHere,
+                            enabled: attendance!.here,
                             controller: visitors,
                             textAlign: TextAlign.center,
                             keyboardType: TextInputType.number,

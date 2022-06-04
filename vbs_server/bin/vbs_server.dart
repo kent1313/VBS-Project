@@ -317,9 +317,11 @@ void main() async {
       } else {
         visitors = attendance.visitors;
       }
+
       var execution = await conn.execute("select count(*) rowCount from tblAttendance"
-          " where kidID = kidID and today = :today;",
+          " where kidID = :kidID and today = :today;",
           {'kidID': attendance.kidID, 'today': attendance.today});
+      print('DB-response: ${execution.rows.first.typedAssoc()["rowCount"]}');
       if(execution.rows.first.typedAssoc()["rowCount"] == 0) {
         var action = await conn.execute(
             "insert into tblAttendance (today, kidID, verse, visitors, leaderID)"

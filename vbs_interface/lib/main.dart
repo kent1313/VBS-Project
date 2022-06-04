@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           "/kids": (context) => const Kids(title: 'Kids'),
           "/users": (context) => const userConfiguration(title: 'Users'),
           "/addGroup": (context) => const AddGroup(title: 'New Group'),
-          "/kidData": (context) => const KidData(title: 'Test'),
+          "/kidData": (context) => const KidData(title: 'Check in'),
           "/groups": (context) => const Groups(title: 'Groups'),
           "/login": (context) => const Login(title: 'Login'),
           "/kidConfiguration": (context) => const kidConfiguration(title: 'Kids'),
