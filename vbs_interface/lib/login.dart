@@ -70,6 +70,9 @@ class _LoginState extends State<Login> {
                     setState(() {});
                     isError = false;
                   },
+                  onSubmitted: (value) {
+                    authorization();
+                  },
                 ),
               ),
               Container(
@@ -84,6 +87,9 @@ class _LoginState extends State<Login> {
                   onChanged: (newValue) {
                     setState(() {});
                     isError = false;
+                  },
+                  onSubmitted: (value) {
+                    authorization();
                   },
                 ),
               ),
