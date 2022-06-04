@@ -112,7 +112,12 @@ class _LoginState extends State<Login> {
       "password": password.text
     };
     String token = '';
-    var url = Uri.http('${api.hostName}:${api.port}', "${api.prefix}login");
+    Uri url;
+    if(api.hostName == "localhost") {
+      url = Uri.http('${api.hostName}:${api.port}', "${api.prefix}login");
+    } else {
+      url = Uri.https('${api.hostName}:${api.port}', "${api.prefix}login");
+    }
     var response = await http.post(url, body: convert.jsonEncode(data));
     if(response.statusCode == 200) {
       token = convert.jsonDecode(response.body)['token'];

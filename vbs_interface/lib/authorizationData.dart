@@ -57,8 +57,12 @@ class API {
       }
     }
 
-    var url =
-    Uri.http('$hostName:$port', "$prefix$path");
+    late Uri url;
+    if(hostName == "localhost") {
+      url = Uri.http('$hostName:$port', "$prefix$path");
+    } else {
+      url = Uri.https('$hostName:$port', "$prefix$path");
+    }
     print("Getting: $url");
     var response;
     if(method == 'get') {
