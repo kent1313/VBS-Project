@@ -95,10 +95,7 @@ class _homePageState extends State<homePage> {
           ],
         ),
       ),
-      body: Center(
-          child: FloatingActionButton(
-        onPressed: null,
-      )),
+      body: MainContent(),
     );
   }
 
@@ -146,6 +143,78 @@ class _LoginLogoutTileState extends State<LoginLogoutTile> {
           Navigator.pushNamed(context, '/login');
         }
       },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    api.addTokenListener(listener);
+  }
+
+  @override
+  void dispose() {
+    // You have to remove the listener (kind of deteats the point of listening)
+    // otherwise you get an error trying to call set state on a dead state
+    api.removeTokenListener(listener);
+    super.dispose();
+  }
+
+  void listener() {
+    setState((){});
+  }
+}
+
+class MainContent extends StatefulWidget {
+  @override
+  State<MainContent> createState() => _MainContent();
+}
+
+class _MainContent extends State<MainContent> {
+
+  @override
+  Widget build(BuildContext context) {
+    String userType = '';
+    if(api.admin == 'none') {
+      userType = 'a leader';
+    }
+    if(api.admin == 'some') {
+      userType = 'a check in helper';
+    }
+    if(api.admin == 'full') {
+      userType = 'an administrator';
+    }
+    return api.isLoggedIn ? Container(
+      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+      child: Align(
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Text('You are currently logged in $userType', style: const TextStyle(fontSize: 25),),
+          ],
+        ),
+      ),
+    ):
+    Container(
+      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+      child: Align(
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            const Text('You are currently logged out.', style: TextStyle(fontSize: 25),),
+            Container(
+              padding: const EdgeInsets.fromLTRB(0, 18, 0, 0),
+              child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {});
+                    Navigator.pushNamed(context, '/login');
+        },
+                  child: const Text('Log in here'),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 
