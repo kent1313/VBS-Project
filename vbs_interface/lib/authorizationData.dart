@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,28 @@ final api = API();
 class API {
   final ValueNotifier<String> _token = ValueNotifier<String>("");
   String admin = 'none';
+  String hostName = "digitaleagle.net";
+  String port = "80";
+  String prefix = "lbcvbs";
+
+  config() async {
+    var hostJsonFile = File("host.json");
+    if(hostJsonFile.existsSync()) {
+      var hostJson = jsonDecode(await hostJsonFile.readAsString());
+      if(hostJson["host"] != null) {
+        hostName = hostJson["host"];
+      }
+      if(hostJson["port"] != null) {
+        port = hostJson["port"];
+      }
+      if(hostJson["prefix"] != null) {
+        prefix = hostJson["prefix"];
+      }
+    }
+    if(prefix.isNotEmpty && !prefix.endsWith("/")) {
+      prefix += "/";
+    }
+  }
 
   Future <String> sendMessage({required BuildContext context,
     required String path,
@@ -18,7 +41,7 @@ class API {
     ) async {
 
     // load the token
-    if(token == null) {
+    if(token.isEmpty) {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       if (token == null) {
@@ -29,7 +52,8 @@ class API {
     }
 
     var url =
-    Uri.http('localhost:8080', path);
+    Uri.http('$hostName:$port', "$prefix$path");
+    print("Getting: $url");
     var response;
     if(method == 'get') {
       response = await http.get(url, headers: {'authorization': token});

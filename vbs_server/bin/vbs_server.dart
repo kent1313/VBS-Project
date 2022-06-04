@@ -446,5 +446,6 @@ void main() async {
       .addHandler(app);
 
   config.load();
+  print("Listening on localhost port 8080");
   var server = await io.serve(_handler, 'localhost', 8080);
 }
