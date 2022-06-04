@@ -40,7 +40,7 @@ void main() async {
   }
 
   Middleware _headersMiddleware = createMiddleware(responseHandler: addHeaders);
-  config.load();
+  await config.load();
   print("Using prefix: ${config.prefix}");
   print("Database: ${config.databaseName}");
 
