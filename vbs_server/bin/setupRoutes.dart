@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:mysql_client/mysql_client.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:vbs_shared/vbs_shared.dart';
@@ -40,7 +41,7 @@ class SetupRoutes {
             });
         if (user.password.isNotEmpty) {
           action = await conn.execute(
-              "user tblUser set password = md5(:password) where userName = :user",
+              "update tblUser set password = md5(:password) where userName = :user",
               {"user": user.userName, "password": user.password});
         }
       }
@@ -50,6 +51,32 @@ class SetupRoutes {
       };
       return Response.ok(jsonEncode(data));
 
+    });
+
+    app.post('/updateLeader', (Request request) async {
+      final body = await request.readAsString();
+      final conn = await config.connectToDatabase();
+      
+      var leader = Leader.fromJSONObject(jsonDecode(body));
+
+      var rowsUpdated = 0;
+      var rowsInserted = 0;
+      if(leader.leaderID <= 0) {
+        IResultSet action = await conn.execute("insert into tblLeader (firstName, lastName, email, phone, groupID) values (:firstName, :lastName, :email, :phone, :groupID)",
+        {"firstName": leader.firstName, "lastName": leader.lastName, "email": leader.email, "phone": leader.phone, "groupID": leader.groupID});
+        leader.leaderID = action.lastInsertID.toInt();
+        rowsInserted = action.affectedRows.toInt();
+      } else {
+        var action = await conn.execute("update tblLeader set firstName = :firstName, lastName = :lastName, email = :email, phone = :phone, groupID = :groupID where leaderID = :leaderID",
+            {"leaderID": leader.leaderID, "firstName": leader.firstName, "lastName": leader.lastName, "email": leader.email, "phone": leader.phone, "groupID": leader.groupID});
+        rowsUpdated = action.affectedRows.toInt();
+      }
+      var data = {
+        "leaderUpdated": leader.leaderID,
+        "rowsUpdated": rowsUpdated,
+        "rowsInserted": rowsInserted,
+      };
+      return Response.ok(jsonEncode(data));
     });
 
   }

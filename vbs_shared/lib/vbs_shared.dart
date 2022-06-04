@@ -252,3 +252,35 @@ class User {
     };
   }
 }
+
+class Leader {
+  int leaderID = -1;
+  String firstName = "";
+  String lastName = "";
+  String email = "";
+  int phone = 0;
+  int groupID = -1;
+
+  static Leader fromJSONObject(Map<String, dynamic> json) {
+    Leader leader = Leader();
+    leader.leaderID = json["leaderID"];
+    leader.firstName = json["firstName"];
+    leader.lastName = json["lastName"];
+    leader.email = json["email"];
+    leader.phone = json["phone"];
+    leader.groupID = json["groupID"];
+    return leader;
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      "leaderID": leaderID,
+      "firstName": firstName,
+      "lastName": lastName,
+      "email": email,
+      "phone": phone,
+      "groupID": groupID,
+    };
+  }
+
+}
