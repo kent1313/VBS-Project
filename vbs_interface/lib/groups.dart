@@ -34,7 +34,7 @@ class _GroupsState extends State<Groups> {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/addGroup');
+            Navigator.pushNamed(context, '/addGroup').then((value) => setState(() {}));
           },
           child: Icon(Icons.group_add),
         ),

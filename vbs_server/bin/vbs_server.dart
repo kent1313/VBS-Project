@@ -422,6 +422,20 @@ void main() async {
     return Response.ok('hello-world');
   });
 
+  app.post('/addGroup', (Request request) async {
+    final body = await request.readAsString();
+    final conn = await config.connectToDatabase();
+
+    var group = Group.fromJSONObject(jsonDecode(body));
+
+      var execution = await conn.execute("insert into tblGroup (groupName, mainLeaderID)"
+          "values (:groupName, :mainLeaderID)",
+          {'groupName': group.groupName, 'mainLeaderID': group.mainLeaderID});
+
+    conn.close();
+    return Response.ok('hello-world');
+  });
+
   SetupRoutes.addRoutes(app);
 
   // Configure a pipeline that logs requests.
