@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 import 'package:http/http.dart' as http;
+//https://stackoverflow.com/questions/57937280/how-can-i-detect-if-my-flutter-app-is-running-in-the-web
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 final api = API();
 
@@ -16,17 +18,21 @@ class API {
   String prefix = "lbcvbs";
 
   config() async {
-    var hostJsonFile = File("host.json");
-    if(hostJsonFile.existsSync()) {
-      var hostJson = jsonDecode(await hostJsonFile.readAsString());
-      if(hostJson["host"] != null) {
-        hostName = hostJson["host"];
-      }
-      if(hostJson["port"] != null) {
-        port = hostJson["port"];
-      }
-      if(hostJson["prefix"] != null) {
-        prefix = hostJson["prefix"];
+    if (kIsWeb) {
+      // running on the web! -- don't want to look for a host file!
+    } else {
+      var hostJsonFile = File("host.json");
+      if(hostJsonFile.existsSync()) {
+        var hostJson = jsonDecode(await hostJsonFile.readAsString());
+        if(hostJson["host"] != null) {
+          hostName = hostJson["host"];
+        }
+        if(hostJson["port"] != null) {
+          port = hostJson["port"];
+        }
+        if(hostJson["prefix"] != null) {
+          prefix = hostJson["prefix"];
+        }
       }
     }
     if(prefix.isNotEmpty && !prefix.endsWith("/")) {
