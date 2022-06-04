@@ -14,7 +14,7 @@ class API {
   final ValueNotifier<String> _token = ValueNotifier<String>("");
   String admin = 'none';
   String hostName = "digitaleagle.net";
-  String port = "80";
+  String port = "443";
   String prefix = "lbcvbs";
 
   config() async {
