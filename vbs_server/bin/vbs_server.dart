@@ -40,12 +40,9 @@ void main() async {
   }
 
   Middleware _headersMiddleware = createMiddleware(responseHandler: addHeaders);
-
-
-
-  app.get('/hello', (Request request) {
-    return Response.ok('hello-world');
-  });
+  config.load();
+  print("Using prefix: ${config.prefix}");
+  print("Database: ${config.databaseName}");
 
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
@@ -445,7 +442,6 @@ void main() async {
       .addMiddleware(AuthProvider.createMiddleware(requestHandler: AuthProvider.handle))
       .addHandler(app);
 
-  config.load();
   print("Listening on localhost port 8080");
   var server = await io.serve(_handler, 'localhost', 8080);
 }

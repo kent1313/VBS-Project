@@ -143,15 +143,26 @@ class API {
         body: jsonEncode(group.toJSON())
     );
   }
-
-  Future addKid(context, AddKid kid) async {
+  Future saveKid(context, Family family, List<Kid> familyMembers) async {
+    List<Map<String, dynamic>> list = [];
+    for(var member in familyMembers) {
+      list.add(member.toJSON());
+    }
+    var data = {
+      "kids": list,
+      "family": family.toJSON(),
+    };
     var response = await sendMessage(
         context: context,
         method: 'post',
         path: 'addKid',
-        body: jsonEncode(kid.toJSON())
+        body: jsonEncode(data),
     );
   }
+
+  // ------------------------------------
+  //  Token-related functions
+  // ------------------------------------
 
   String get token {
     return _token.value;

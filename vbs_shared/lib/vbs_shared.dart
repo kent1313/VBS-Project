@@ -49,8 +49,8 @@ class Kid {
   int? groupID;
   String? groupName;
 
-  Object toJSON() {
-    Object obj = {
+  Map<String, dynamic> toJSON() {
+    return {
       'kidID': kidID,
       'firstName': firstName,
       'lastName': lastName,
@@ -60,7 +60,6 @@ class Kid {
       'family': family == null ? null : family!.toJSON(),
       'groupName': groupName,
     };
-    return obj;
   }
 
   static Kid fromJSON(String json) {
