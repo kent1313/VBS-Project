@@ -343,6 +343,43 @@ void main() async {
     return Response.ok('hello-world');
   });
 
+  app.get('${config.prefix}/getFamily/<familyID>', (Request request, String familyIDString) async {
+    final body = await request.readAsString();
+    final conn = await config.connectToDatabase();
+
+    int familyID = int.parse(familyIDString);
+
+    IResultSet result = await conn.execute("select * from tblFamily where familyID = :familyID", {"familyID": familyID});
+    Family family = Family();
+    if(result.numOfRows > 0) {
+      var row = result.rows.first.typedAssoc();
+      family.id = row["familyID"];
+      family.familyName = row["familyName"];
+      family.phone = row["phone"];
+      family.email = row["email"];
+      family.address = row["address"];
+    }
+    result = await conn.execute("select * from tblKid where familyID = :familyID", {"familyID": familyID});
+    List<Map<String, dynamic>> members = [];
+    for(var row in result.rows) {
+      Kid kid = Kid();
+      kid.kidID = row.typedAssoc()['kidID'];
+      kid.firstName = row.typedAssoc()['firstName'];
+      kid.lastName = row.typedAssoc()['lastName'];
+      kid.grade = row.typedAssoc()['grade'];
+      kid.familyID = row.typedAssoc()['familyID'];
+      kid.groupID = row.typedAssoc()['groupID'];
+      members.add(kid.toJSON());
+    }
+
+    var data = {
+      "family": family.toJSON(),
+      "members": members
+    };
+
+    conn.close();
+    return Response.ok(jsonEncode(data));
+  });
   app.post('${config.prefix}/addKid', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();

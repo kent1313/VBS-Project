@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vbs_interface/addKid.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 import 'package:http/http.dart' as http;
 //https://stackoverflow.com/questions/57937280/how-can-i-detect-if-my-flutter-app-is-running-in-the-web
@@ -142,6 +143,17 @@ class API {
         path: 'addGroup',
         body: jsonEncode(group.toJSON())
     );
+  }
+  Future<FamilyResult> loadFamily(context, int familyID) async {
+    var response = await sendMessage(context: context, path: "getFamily/$familyID");
+    var data = jsonDecode(response);
+    FamilyResult result = FamilyResult();
+    result.family = Family.fromJSONObect(data["family"]);
+    result.members = [];
+    for(var kid in data["members"]) {
+      result.members!.add(Kid.fromJSONObject(kid));
+    }
+    return result;
   }
   Future saveKid(context, Family family, List<Kid> familyMembers) async {
     List<Map<String, dynamic>> list = [];
