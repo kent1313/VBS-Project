@@ -347,6 +347,13 @@ void main() async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
+    var data = jsonDecode(body);
+    List<Kid> kids = [];
+    for(var kid in data["kids"]) {
+      kids.add(Kid.fromJSONObject(kid));
+    }
+    Family family = Family.fromJSONObect(data["family"]);
+
     var kid = Kid.fromJSONObject(jsonDecode(body));
 
     int? groupID;
