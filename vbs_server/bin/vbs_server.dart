@@ -84,6 +84,7 @@ void main() async {
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
       kid.groupName = row.colByName("groupName");
+      kid.age = row.typedAssoc()["age"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -115,6 +116,7 @@ void main() async {
         kid.familyID = int.parse(row.colByName("familyID") ?? '0');
         kid.grade = int.parse(row.colByName("grade") ?? '0');
         kid.groupName = row.colByName("groupName");
+        kid.age = row.typedAssoc()["age"];
 
         if(kid.firstName!.length >= search.length) {
           if(kid.firstName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
@@ -223,6 +225,7 @@ void main() async {
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
+      kid.age = row.typedAssoc()["age"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -251,7 +254,7 @@ void main() async {
 
     var results2 = await conn.execute(
         ""
-        "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, "
+        "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, k.age, "
         "case when a.today is null then 'N' else "
         "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID "
         "from tblKid k left outer join tblAttendance a on k.kidID = a.kidID "
@@ -267,6 +270,7 @@ void main() async {
       attend.kid!.grade = row.typedAssoc()['grade'];
       attend.kid!.familyID = row.typedAssoc()['familyID'];
       attend.kid!.groupID = row.typedAssoc()['groupID'];
+      attend.kid!.age = row.typedAssoc()['age'];
 
       //attend.verse = row.colByName["a.verse"];
       //print(row.colByName["a.verse"]);
@@ -355,6 +359,7 @@ void main() async {
       var row = result.rows.first.typedAssoc();
       family.id = row["familyID"];
       family.familyName = row["familyName"];
+      family.parentName = row["parentName"];
       family.phone = row["phone"];
       family.email = row["email"];
       family.address = row["address"];
@@ -369,6 +374,7 @@ void main() async {
       kid.grade = row.typedAssoc()['grade'];
       kid.familyID = row.typedAssoc()['familyID'];
       kid.groupID = row.typedAssoc()['groupID'];
+      kid.age = row.typedAssoc()['age'];
       members.add(kid.toJSON());
     }
 
@@ -402,10 +408,11 @@ void main() async {
 
     // insert / update the family
     if(family.id <= 0) {
-      IResultSet result = await conn.execute("insert into tblFamily (familyName, address, phone, email)"
-          "values (:familyName, :address, :phone, :email);",
+      IResultSet result = await conn.execute("insert into tblFamily (familyName, parentName, address, phone, email)"
+          "values (:familyName, :parentName, :address, :phone, :email);",
           {
             'familyName': family.familyName,
+            "parentName": family.parentName,
             'address': family.address,
             'phone': family.phone,
             'email': family.email,
@@ -413,10 +420,11 @@ void main() async {
       );
       family.id = result.lastInsertID.toInt();
     } else {
-      IResultSet result = await conn.execute("update tblFamily set familyName = :familyName, address = :address, phone = :phone, email = :email where familyID = :familyID",
+      IResultSet result = await conn.execute("update tblFamily set familyName = :familyName, parentName = :parentName, address = :address, phone = :phone, email = :email where familyID = :familyID",
           {
             'familyID': family.id,
             'familyName': family.familyName,
+            "parentName": family.parentName,
             'address': family.address,
             'phone': family.phone,
             'email': family.email,

@@ -39,6 +39,15 @@ class API {
     if(prefix.isNotEmpty && !prefix.endsWith("/")) {
       prefix += "/";
     }
+
+    // load the token from memory
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if (token == null) {
+      api.token = "";
+    } else {
+      api.token = token;
+    }
   }
 
   // ------------------------------------

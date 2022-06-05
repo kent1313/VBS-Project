@@ -208,6 +208,7 @@ class AddKid {
 class Family {
   int id = -1;
   String familyName = "";
+  String parentName = "";
   String address = "";
   String phone = "";
   String email = "";
@@ -216,6 +217,7 @@ class Family {
     Family newFamily =  Family();
     newFamily.id = json["id"];
     newFamily.familyName = json["familyName"];
+    newFamily.parentName = json["parentName"];
     newFamily.address = json["address"];
     newFamily.phone = json["phone"];
     newFamily.email = json["email"];
@@ -226,6 +228,7 @@ class Family {
     return {
       "id": id,
       "familyName": familyName,
+      "parentName": parentName,
       "address": address,
       "phone": phone,
       "email": email

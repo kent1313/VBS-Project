@@ -29,6 +29,7 @@ class _AddKidState extends State<AddKid> {
   TextEditingController phone = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController age = TextEditingController();
+  TextEditingController parentName = TextEditingController();
   late FocusNode firstNameFocusNode;
   String message = '';
   bool badInput = false;
@@ -39,6 +40,8 @@ class _AddKidState extends State<AddKid> {
   List<Group> groups = [];
   List<Kid> familyMembers = [];
   bool existingFamily = false;
+  KidArguments? screenArguments;
+  bool familyLoaded = false;
 
   // for validation
   final _formKey = GlobalKey<FormState>();
@@ -61,6 +64,8 @@ class _AddKidState extends State<AddKid> {
     //  https://stackoverflow.com/questions/56262655/flutter-get-passed-arguments-from-navigator-in-widgets-states-initstate
     // future that allows us to access context. function is called inside the future
     // otherwise it would be skipped and args would return null
+    /*  This doesn't work with the future ... the future gets called first ... causes strange errors
+        moved to the build()
     Future.delayed(Duration.zero, () {
       KidArguments? args =
           ModalRoute.of(context)!.settings.arguments as KidArguments;
@@ -81,7 +86,27 @@ class _AddKidState extends State<AddKid> {
       setupTextControllers();
       setState(() {});
     });
+         */
     firstNameFocusNode = FocusNode();
+  }
+
+  initScreenArguments() {
+    if (screenArguments == null) {
+      kid = Kid();
+      // This won't work -- we have to always pass the KidArguments
+      groups = [];
+      throw Exception("This screen called without arguments.");
+    } else {
+      kid = screenArguments!.kid;
+      if (kid.family == null) {
+        kid.family = Family();
+        kid.family!.id = kid.familyID ?? -1;
+      }
+      groups = screenArguments!.groups;
+    }
+    familyMembers.add(kid);
+    family = kid.family!;
+    setupTextControllers();
   }
 
   @override
@@ -97,6 +122,7 @@ class _AddKidState extends State<AddKid> {
     phone = TextEditingController();
     email = TextEditingController();
     age = TextEditingController();
+    parentName = TextEditingController();
 
     firstName.text = kid.firstName ?? "";
     lastName.text = kid.lastName ?? "";
@@ -106,6 +132,7 @@ class _AddKidState extends State<AddKid> {
     if(kid.age > 0) {
       age.text = kid.age.toString();
     }
+    parentName.text = family.parentName;
 
     firstName.addListener(() {
       kid.firstName = firstName.text;
@@ -129,15 +156,20 @@ class _AddKidState extends State<AddKid> {
         kid.age = int.parse(age.text);
       }
     });
+    parentName.addListener(() {
+      kid.family!.parentName = parentName.text;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
+    // get the screen's arguments on the first build call
+    if(screenArguments == null) {
+      screenArguments = ModalRoute.of(context)!.settings.arguments as KidArguments;
+      initScreenArguments();
+    }
+
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.add, control: true):
@@ -270,13 +302,19 @@ class _AddKidState extends State<AddKid> {
                             enabled: existingFamily ? false : true,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
+                              labelText: 'Parent\'s Name',
+                            ),
+                            controller: parentName
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                          child: TextField(
+                            enabled: existingFamily ? false : true,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
                               labelText: 'Address',
                             ),
-                            inputFormatters: <TextInputFormatter>[
-                              FilteringTextInputFormatter.allow(RegExp(
-                                  r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ,1,2,3,4,5,6,7,8,9,0,.]'))
-                            ],
                             controller: address,
                             maxLines: 4,
                           ),
@@ -341,6 +379,9 @@ class _AddKidState extends State<AddKid> {
                                                       familyMembers[index]
                                                           .firstName ??
                                                           "no name"),
+                                                  onTap: () {
+                                                    selectFamilyMember(familyMembers[index]);
+                                                  },
                                                 );
                                               }),
                                         ),
@@ -567,7 +608,14 @@ class _AddKidState extends State<AddKid> {
     if(family.id == -1) {
       return FamilyResult();
     }
+    if(familyLoaded) {
+      var result = FamilyResult();
+      result.family = family;
+      result.members = familyMembers;
+      return result;
+    }
     var result = await api.loadFamily(context, family.id);
+    familyLoaded = true;
     if(result.members!.length > 0) {
       kid = result.members![1];
     }
@@ -579,6 +627,13 @@ class _AddKidState extends State<AddKid> {
       firstNameFocusNode.requestFocus();
     }
     return result;
+  }
+
+  void selectFamilyMember(Kid familyMember) {
+    kid = familyMember;
+    setupTextControllers();
+    firstNameFocusNode.requestFocus();
+    setState(() {});
   }
 }
 
