@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert' as convert;
-import 'package:http/http.dart' as http;
 import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
-import 'package:side_navigation/side_navigation.dart';
 
 class kidConfiguration extends StatefulWidget {
   const kidConfiguration({Key? key, required this.title}) : super(key: key);
@@ -93,11 +90,11 @@ class _kidConfigurationState extends State<kidConfiguration> {
                                     onTap: () {
                                       // SKP -- changed to add kid so we only use 1 screen
                                       //  also added the kid argument
-                                      if(api.admin == 'none') {
+                                      /* if(api.admin == 'none') {
                                         permissionDenied1();
-                                      } else {
+                                      } else { */
                                         Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
-                                      }
+                                      //}
                                     },
                                     title: Text(kidFirstNames.toString()),
                                     subtitle: Text(kidLastNames.toString()),
@@ -192,11 +189,11 @@ class _kidConfigurationState extends State<kidConfiguration> {
     setState(() {});
   }
   newButtonClick() {
-    if(api.admin == 'none') {
-      permissionDenied2();
-    } else {
+    //if(api.admin == 'none') {
+    //  permissionDenied2();
+    //} else {
       Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
-    }
+    //}
   }
 }
 

@@ -47,7 +47,7 @@ void main() async {
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select * from tblGroup;');
+    var results = await conn.execute('select *, (select count(*) from tblKid k where k.groupID = g.groupID) cnt from tblGroup g');
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -56,6 +56,7 @@ void main() async {
       group.groupID = int.parse(row.colByName("groupID") ?? '0');
       group.groupName = row.colByName("groupName");
       group.mainLeaderID = int.parse(row.colByName('mainLeaderID') ?? '0');
+      group.memberCount = row.typedAssoc()["cnt"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(group.toJSON());
@@ -387,93 +388,107 @@ void main() async {
     return Response.ok(jsonEncode(data));
   });
   app.post('${config.prefix}/addKid', (Request request) async {
-    final body = await request.readAsString();
-    final conn = await config.connectToDatabase();
+    try {
+      final body = await request.readAsString();
+      final conn = await config.connectToDatabase();
 
-    var data = jsonDecode(body);
-    List<Kid> kids = [];
-    for(var kid in data["kids"]) {
-      kids.add(Kid.fromJSONObject(kid));
-    }
-    Family family = Family.fromJSONObect(data["family"]);
-
-    // figure out the family name...
-    List<String> lastNames = [];
-    for(var kid in kids) {
-      if(kid.lastName != null && kid.lastName!.isNotEmpty && !lastNames.contains(kid.lastName)) {
-        lastNames.add(kid.lastName!);
+      var data = jsonDecode(body);
+      List<Kid> kids = [];
+      for (var kid in data["kids"]) {
+        kids.add(Kid.fromJSONObject(kid));
       }
-    }
-    family.familyName = lastNames.join(",");
+      Family family = Family.fromJSONObect(data["family"]);
 
-    // insert / update the family
-    if(family.id <= 0) {
-      IResultSet result = await conn.execute("insert into tblFamily (familyName, parentName, address, phone, email)"
-          "values (:familyName, :parentName, :address, :phone, :email);",
-          {
-            'familyName': family.familyName,
-            "parentName": family.parentName,
-            'address': family.address,
-            'phone': family.phone,
-            'email': family.email,
-          }
-      );
-      family.id = result.lastInsertID.toInt();
-    } else {
-      IResultSet result = await conn.execute("update tblFamily set familyName = :familyName, parentName = :parentName, address = :address, phone = :phone, email = :email where familyID = :familyID",
-          {
-            'familyID': family.id,
-            'familyName': family.familyName,
-            "parentName": family.parentName,
-            'address': family.address,
-            'phone': family.phone,
-            'email': family.email,
-          }
-      );
-    }
+      // figure out the family name...
+      List<String> lastNames = [];
+      for (var kid in kids) {
+        if (kid.lastName != null && kid.lastName!.isNotEmpty &&
+            !lastNames.contains(kid.lastName)) {
+          lastNames.add(kid.lastName!);
+        }
+      }
+      family.familyName = lastNames.join(",");
 
-    for(var kid in kids) {
-      // insert / update
-      if(kid.kidID == null || kid.kidID! <= 0) {
+      // insert / update the family
+      if (family.id <= 0) {
         IResultSet result = await conn.execute(
-            "insert into tblKid (familyID, grade, firstName, lastName, groupID, age)"
-                "values (:familyID, :grade, :firstName, :lastName, :groupID, :age);",
+            "insert into tblFamily (familyName, parentName, address, phone, email)"
+                "values (:familyName, :parentName, :address, :phone, :email);",
             {
-              'familyID': family.id,
-              'grade': kid.grade,
-              'firstName': kid.firstName,
-              'lastName': kid.lastName,
-              'groupID': kid.groupID,
-              'age': kid.age,
+              'familyName': family.familyName,
+              "parentName": family.parentName,
+              'address': family.address,
+              'phone': family.phone,
+              'email': family.email,
             }
         );
-        kid.kidID = result.lastInsertID.toInt();
+        family.id = result.lastInsertID.toInt();
       } else {
-        IResultSet result = await conn.execute("update tblKid set familyID = :familyID, firstName = :firstName, lastName = :lastName, groupID = :groupID, grade = :grade, age = :age where kidID = :kidID",
+        IResultSet result = await conn.execute(
+            "update tblFamily set familyName = :familyName, parentName = :parentName, address = :address, phone = :phone, email = :email where familyID = :familyID",
             {
               'familyID': family.id,
-              'grade': kid.grade,
-              'firstName': kid.firstName,
-              'lastName': kid.lastName,
-              'groupID': kid.groupID,
-              'age': kid.age,
-              'kidID': kid.kidID,
+              'familyName': family.familyName,
+              "parentName": family.parentName,
+              'address': family.address,
+              'phone': family.phone,
+              'email': family.email,
             }
         );
       }
-    }
-    
-    List<Map<String, dynamic>> returnList = [];
-    for(var kid in kids) {
-      returnList.add(kid.toJSON());
-    }
-    var returnData = {
-      "kids": returnList,
-      "family": family.toJSON(),
-    };
 
-    conn.close();
-    return Response.ok(jsonEncode(returnData));
+      for (var kid in kids) {
+        // insert / update
+        if (kid.kidID == null || kid.kidID! <= 0) {
+          IResultSet result = await conn.execute(
+              "insert into tblKid (familyID, grade, firstName, lastName, groupID, age)"
+                  "values (:familyID, :grade, :firstName, :lastName, :groupID, :age);",
+              {
+                'familyID': family.id,
+                'grade': kid.grade,
+                'firstName': kid.firstName,
+                'lastName': kid.lastName,
+                'groupID': kid.groupID,
+                'age': kid.age,
+              }
+          );
+          kid.kidID = result.lastInsertID.toInt();
+        } else {
+          IResultSet result = await conn.execute(
+              "update tblKid set familyID = :familyID, firstName = :firstName, lastName = :lastName, groupID = :groupID, grade = :grade, age = :age where kidID = :kidID",
+              {
+                'familyID': family.id,
+                'grade': kid.grade,
+                'firstName': kid.firstName,
+                'lastName': kid.lastName,
+                'groupID': kid.groupID,
+                'age': kid.age,
+                'kidID': kid.kidID,
+              }
+          );
+        }
+      }
+
+      List<Map<String, dynamic>> returnList = [];
+      for (var kid in kids) {
+        returnList.add(kid.toJSON());
+      }
+      var returnData = {
+        "kids": returnList,
+        "family": family.toJSON(),
+      };
+
+      conn.close();
+      return Response.ok(jsonEncode(returnData));
+    } catch (e, stacktrace) {
+      var data = {
+        "error": e.toString(),
+        "stack": stacktrace.toString(),
+      };
+      print("Error!! $e");
+      print("  Stack: $stacktrace");
+      return Response.internalServerError(body: jsonEncode(data));
+    }
   });
 
   app.post('${config.prefix}/addGroup', (Request request) async {

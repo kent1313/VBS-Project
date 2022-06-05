@@ -56,6 +56,7 @@ class _AddKidState extends State<AddKid> {
     {"id": 4, "label": "Fourth Grade"},
     {"id": 5, "label": "Fifth Grade"},
     {"id": 6, "label": "Sixth Grade"},
+    {"id": 7, "label": "Seventh Grade"},
   ];
 
   @override
@@ -207,7 +208,7 @@ class _AddKidState extends State<AddKid> {
                                   color: Colors.red,
                                 ),
                               )),
-                          visible: badInput,
+                          visible: message.isNotEmpty,
                         ),
                         Visibility(
                           visible: familyMembers.length == 1,
@@ -480,55 +481,72 @@ class _AddKidState extends State<AddKid> {
                                   ),
                                   Row(
                                     children: [
-                                      Container(
-                                          padding:
-                                          const EdgeInsets.fromLTRB(
-                                              10, 10, 20, 20),
-                                          child: DropdownButton<int>(
-                                            value: kid.groupID,
-                                            icon: const Icon(
-                                                Icons.arrow_downward),
-                                            onChanged: (int? newValue) {
-                                              setState(() {
-                                                kid.groupID = newValue;
-                                              });
-                                            },
-                                            items: groups.map<
-                                                DropdownMenuItem<int>>(
-                                                    (Group group) {
-                                                  return DropdownMenuItem<int>(
-                                                    value: group.groupID,
+                                      Expanded(
+                                        child: Container(
+                                            padding:
+                                            const EdgeInsets.fromLTRB(
+                                                10, 10, 20, 20),
+                                            child: DropdownButtonFormField<int>(
+                                              value: kid.groupID,
+                                              icon: const Icon(
+                                                  Icons.arrow_downward),
+                                              onChanged: (int? newValue) {
+                                                setState(() {
+                                                  kid.groupID = newValue;
+                                                });
+                                              },
+                                              items: groups.map<
+                                                  DropdownMenuItem<int>>(
+                                                      (Group group) {
+                                                    return DropdownMenuItem<int>(
+                                                      value: group.groupID,
+                                                      child: Text("${group.groupName ?? ""} (${group.memberCount})"),
+                                                    );
+                                                  }).toList()
+                                                ..add(DropdownMenuItem(
                                                     child: Text(
-                                                        group.groupName ?? ""),
-                                                  );
-                                                }).toList()
-                                              ..add(DropdownMenuItem(
-                                                  child: Text(
-                                                      "<Pick a group>"))),
-                                          )),
-                                      Container(
-                                          padding:
-                                          const EdgeInsets.fromLTRB(
-                                              20, 10, 20, 20),
-                                          child: DropdownButton<int?>(
-                                            value: kid.grade,
-                                            icon: const Icon(
-                                                Icons.arrow_downward),
-                                            onChanged: (int? newValue) {
-                                              setState(() {
-                                                kid.grade = newValue!;
-                                              });
-                                            },
-                                            items: grades.map<
-                                                DropdownMenuItem<int?>>(
-                                                    (var value) {
-                                                  return DropdownMenuItem<int?>(
-                                                    value: value["id"] as int?,
-                                                    child: Text(
-                                                        value["label"]! as String),
-                                                  );
-                                                }).toList(),
-                                          )),
+                                                        "<Pick a group>")
+                                                )
+                                                ),
+                                              validator: (value) {
+                                                if(value == null) {
+                                                  return "Please select a group";
+                                                }
+                                                return null;
+                                              },
+                                            )),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                            padding:
+                                            const EdgeInsets.fromLTRB(
+                                                20, 10, 20, 20),
+                                            child: DropdownButtonFormField<int?>(
+                                              value: kid.grade,
+                                              icon: const Icon(
+                                                  Icons.arrow_downward),
+                                              onChanged: (int? newValue) {
+                                                setState(() {
+                                                  kid.grade = newValue!;
+                                                });
+                                              },
+                                              items: grades.map<
+                                                  DropdownMenuItem<int?>>(
+                                                      (var value) {
+                                                    return DropdownMenuItem<int?>(
+                                                      value: value["id"] as int?,
+                                                      child: Text(
+                                                          value["label"]! as String),
+                                                    );
+                                                  }).toList(),
+                                              validator: (value) {
+                                                if(value == null) {
+                                                  return "Grade is required";
+                                                }
+                                                return null;
+                                              },
+                                            )),
+                                      ),
                                       Flexible(
                                         child: Container(
                                           padding:
@@ -588,8 +606,16 @@ class _AddKidState extends State<AddKid> {
 
   saveKid() async {
     if (_formKey.currentState!.validate()) {
-      await api.saveKid(context, family, familyMembers);
-      Navigator.pop(context);
+      try {
+        badInput = false;
+        message = "";
+        await api.saveKid(context, family, familyMembers);
+        Navigator.pop(context);
+      } catch(e) {
+        message = e.toString();
+        badInput = true;
+        setState((){});
+      }
     }
   }
 
