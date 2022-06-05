@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vbs_interface/kidConfiguration.dart';
 import 'package:vbs_shared/vbs_shared.dart';
+import 'authorizationData.dart';
 
 class AddKid extends StatefulWidget {
   const AddKid({Key? key, required this.title}) : super(key: key);
@@ -27,6 +28,7 @@ class _AddKidState extends State<AddKid> {
   TextEditingController address = TextEditingController();
   TextEditingController phone = TextEditingController();
   TextEditingController email = TextEditingController();
+  TextEditingController age = TextEditingController();
   String message = '';
   bool badInput = false;
   String grade = 'Pick a grade';
@@ -85,12 +87,14 @@ class _AddKidState extends State<AddKid> {
     address = TextEditingController();
     phone = TextEditingController();
     email = TextEditingController();
+    age = TextEditingController();
 
     firstName.text = kid.firstName ?? "";
     lastName.text = kid.lastName ?? "";
     address.text = family.address;
     phone.text = family.phone;
     email.text = family.email;
+    age.text = kid.age.toString();
 
     firstName.addListener(() {
       kid.firstName = firstName.text;
@@ -106,6 +110,13 @@ class _AddKidState extends State<AddKid> {
     });
     email.addListener(() {
       kid.family!.email = email.text;
+    });
+    age.addListener(() {
+      if(age.text.isEmpty) {
+        kid.age = 0;
+      } else {
+        kid.age = int.parse(age.text);
+      }
     });
   }
 
@@ -271,11 +282,6 @@ class _AddKidState extends State<AddKid> {
                           border: OutlineInputBorder(),
                           labelText: 'Email',
                         ),
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.allow(RegExp(
-                              r'[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, '
-                              r',1,2,3,4,5,6,7,8,9,0,.,!,@,#,$,%,^,&,*,(,),{,},[,],?,-,_,+,=,~]'))
-                        ],
                         controller: email,
                       ),
                     ),
@@ -385,6 +391,23 @@ class _AddKidState extends State<AddKid> {
                                     );
                                   }).toList(),
                                 )),
+                           Flexible(
+                             child: Container(
+                                padding: const EdgeInsets.fromLTRB(10, 10, 5, 5),
+                                child: TextField(
+                                  enabled: existingFamily ? false : true,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Age',
+                                  ),
+                                  controller: age,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
+                                  ],
+                                ),
+                              ),
+                           ),
                           ],
                         ),
                         Row(
@@ -410,8 +433,9 @@ class _AddKidState extends State<AddKid> {
         )));
   }
 
-  saveKid() {
+  saveKid() async {
     if (_formKey.currentState!.validate()) {
+      await api.saveKid(context, family, familyMembers);
       Navigator.pop(context);
     }
   }

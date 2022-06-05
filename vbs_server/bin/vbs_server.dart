@@ -354,76 +354,81 @@ void main() async {
     }
     Family family = Family.fromJSONObect(data["family"]);
 
-    var kid = Kid.fromJSONObject(jsonDecode(body));
-
-    int? groupID;
-    var getGroupID = await conn.execute(""
-        "select groupID from tblGroup where groupName = :groupName;",
-    {'groupName': kid.groupName});
-
-    for (final row in getGroupID.rows) {
-      groupID = row.typedAssoc()['groupID'];
-    }
-
-    var checkFamily = await conn.execute('select * from tblFamily where familyName = :familyName',
-    {'familyName': kid.family!.familyName});
-
-    if(checkFamily.rows.isEmpty) {
-      int? familyID;
-      var addFamily = await conn.execute(
-          "insert into tblFamily (familyName, address, phone, email)"
-              "values (:familyName, :address, :phone, :email);",
-          {
-            'familyName': kid.family!.familyName,
-            'address': kid.family!.address,
-            'phone': kid.family!.phone,
-            'email': kid.family!.email,
-          }
-      );
-
-      var getFamilyID = await conn.execute('select familyID from tblFamily where familyName = :familyName',
-          {'familyName': kid.family!.familyName});
-
-      for (final row in getFamilyID.rows) {
-        familyID = row.typedAssoc()['familyID'];
+    // figure out the family name...
+    List<String> lastNames = [];
+    for(var kid in kids) {
+      if(kid.lastName != null && kid.lastName!.isNotEmpty && !lastNames.contains(kid.lastName)) {
+        lastNames.add(kid.lastName!);
       }
+    }
+    family.familyName = lastNames.join(",");
 
-      var addKid = await conn.execute(
-          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
-              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
+    // insert / update the family
+    if(family.id <= 0) {
+      IResultSet result = await conn.execute("insert into tblFamily (familyName, address, phone, email)"
+          "values (:familyName, :address, :phone, :email);",
           {
-            'familyID': familyID,
-            'grade': kid.grade,
-            'firstName': kid.firstName,
-            'lastName': kid.lastName,
-            'groupID': groupID,
+            'familyName': family.familyName,
+            'address': family.address,
+            'phone': family.phone,
+            'email': family.email,
           }
       );
+      family.id = result.lastInsertID.toInt();
     } else {
-      int? familyID;
-      var getFamilyID = await conn.execute(""
-          "select familyID from tblFamily where familyName = :familyName;",
-          {'familyName': kid.family!.familyName});
-
-      for (final row in getFamilyID.rows) {
-        familyID = row.typedAssoc()['familyID'];
-      }
-
-      var addKid = await conn.execute(
-          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
-              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
+      IResultSet result = await conn.execute("update tblFamily set familyName = :familyName, address = :address, phone = :phone, email = :email where familyID = :familyID",
           {
-            'familyID': familyID,
-            'grade': kid.grade,
-            'firstName': kid.firstName,
-            'lastName': kid.lastName,
-            'groupID': groupID,
+            'familyID': family.id,
+            'familyName': family.familyName,
+            'address': family.address,
+            'phone': family.phone,
+            'email': family.email,
           }
       );
     }
+
+    for(var kid in kids) {
+      // insert / update
+      if(kid.kidID == null || kid.kidID! <= 0) {
+        IResultSet result = await conn.execute(
+            "insert into tblKid (familyID, grade, firstName, lastName, groupID, age)"
+                "values (:familyID, :grade, :firstName, :lastName, :groupID, :age);",
+            {
+              'familyID': family.id,
+              'grade': kid.grade,
+              'firstName': kid.firstName,
+              'lastName': kid.lastName,
+              'groupID': kid.groupID,
+              'age': kid.age,
+            }
+        );
+        kid.kidID = result.lastInsertID.toInt();
+      } else {
+        IResultSet result = await conn.execute("update tblKid set familyID = :familyID, firstName = :firstName, lastName = :lastName, groupID = :groupID, grade = :grade, age = :age where kidID = :kidID",
+            {
+              'familyID': family.id,
+              'grade': kid.grade,
+              'firstName': kid.firstName,
+              'lastName': kid.lastName,
+              'groupID': kid.groupID,
+              'age': kid.age,
+              'kidID': kid.kidID,
+            }
+        );
+      }
+    }
+    
+    List<Map<String, dynamic>> returnList = [];
+    for(var kid in kids) {
+      returnList.add(kid.toJSON());
+    }
+    var returnData = {
+      "kids": returnList,
+      "family": family.toJSON(),
+    };
 
     conn.close();
-    return Response.ok('hello-world');
+    return Response.ok(jsonEncode(returnData));
   });
 
   app.post('${config.prefix}/addGroup', (Request request) async {
@@ -449,6 +454,7 @@ void main() async {
       .addMiddleware(AuthProvider.createMiddleware(requestHandler: AuthProvider.handle))
       .addHandler(app);
 
-  print("Listening on localhost port 8080");
+  print("Listening on localhost:8080");
+  print("Started at ${DateTime.now()}");
   var server = await io.serve(_handler, 'localhost', 8080);
 }

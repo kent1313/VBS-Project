@@ -48,6 +48,7 @@ class Kid {
   Family? family;
   int? groupID;
   String? groupName;
+  int age = 0;
 
   Map<String, dynamic> toJSON() {
     return {
@@ -59,6 +60,7 @@ class Kid {
       'familyID': familyID,
       'family': family == null ? null : family!.toJSON(),
       'groupName': groupName,
+      'age': age,
     };
   }
 
@@ -79,6 +81,7 @@ class Kid {
       kid.family = Family.fromJSONObect(obj["family"]);
     }
     kid.kidID = obj["kidID"];
+    kid.age = obj["age"];
     return kid;
   }
 
@@ -161,6 +164,7 @@ class AddKid {
   String? familyName;
   String? groupName;
   Family? family;
+  int age = 0;
 
   Object toJSON() {
     Object obj = {
@@ -168,7 +172,8 @@ class AddKid {
       'lastName': lastName,
       'groupName': groupName,
       'grade': grade,
-      'familyName': familyName
+      'familyName': familyName,
+      'age': age,
     };
     return obj;
   }
@@ -185,6 +190,7 @@ class AddKid {
     kid.lastName = obj["lastName"];
     kid.grade = obj["grade"];
     kid.familyName = obj["familyName"];
+    kid.age = obj["age"];
     return kid;
   }
 
