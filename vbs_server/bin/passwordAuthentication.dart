@@ -40,7 +40,7 @@ class AuthProvider {
 
   static FutureOr<Response?> handle(Request request) async {
     print(" ... ${request.url.toString()}");
-    if(request.url.toString() == "login" || request.url.toString() == "session/login") {
+    if(request.url.toString() == "login" || request.url.toString().endsWith("/login")) {
       return authenticate(request);
     } else {
       return check(request);

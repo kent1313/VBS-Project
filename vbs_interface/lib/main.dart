@@ -12,6 +12,8 @@ import 'users.dart';
 import 'authorizationData.dart';
 
 void main() async {
+  await api.config();
+
   runApp(const MyApp());
 }
 

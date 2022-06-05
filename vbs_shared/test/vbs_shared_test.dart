@@ -1,12 +1,30 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
 
+import 'package:test/test.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  test('kid loads', () {
+    Kid kid = Kid();
+    kid.kidID = 1;
+    kid.firstName = "Bob";
+    kid.lastName = "Tomato";
+    kid.grade = 2;
+    kid.familyID = 1;
+    kid.family = Family();
+    kid.family!.familyName = "The Tomatos";
+    kid.groupID = 1;
+    kid.groupName = "Testing";
+
+    var json = jsonEncode(kid.toJSON());
+    var newKid = Kid.fromJSON(json);
+    expect(newKid.kidID, 1);
+    expect(newKid.firstName, "Bob");
+    expect(newKid.lastName, "Tomato");
+    expect(newKid.grade, 2);
+    expect(newKid.familyID, 1);
+    expect(newKid.family!.familyName, "The Tomatos");
+    expect(newKid.groupID, 1);
+    expect(newKid.groupName, "Testing");
   });
 }

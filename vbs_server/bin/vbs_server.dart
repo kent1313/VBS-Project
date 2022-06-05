@@ -40,14 +40,11 @@ void main() async {
   }
 
   Middleware _headersMiddleware = createMiddleware(responseHandler: addHeaders);
+  await config.load();
+  print("Using prefix: ${config.prefix}");
+  print("Database: ${config.databaseName}");
 
-
-
-  app.get('/hello', (Request request) {
-    return Response.ok('hello-world');
-  });
-
-  app.get('/groupNames', (Request request) async {
+  app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select * from tblGroup;');
@@ -70,7 +67,7 @@ void main() async {
         );
   });
 
-  app.get('/kidNames', (Request request) async {
+  app.get('${config.prefix}/kidNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select k.*, g.groupName '
@@ -87,6 +84,7 @@ void main() async {
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
       kid.groupName = row.colByName("groupName");
+      kid.age = row.typedAssoc()["age"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -98,7 +96,7 @@ void main() async {
         );
   });
 
-  app.get('/kidSearch/<search>', (Request request, String search) async {
+  app.get('${config.prefix}/kidSearch/<search>', (Request request, String search) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select k.*, g.groupName '
@@ -118,6 +116,7 @@ void main() async {
         kid.familyID = int.parse(row.colByName("familyID") ?? '0');
         kid.grade = int.parse(row.colByName("grade") ?? '0');
         kid.groupName = row.colByName("groupName");
+        kid.age = row.typedAssoc()["age"];
 
         if(kid.firstName!.length >= search.length) {
           if(kid.firstName!.toLowerCase().substring(0,search.length) == search.toLowerCase().substring(0,search.length)) {
@@ -137,7 +136,7 @@ void main() async {
     );
   });
 
-  app.get('/getGroupName/<groupID>', (Request request, String groupID) async {
+  app.get('${config.prefix}/getGroupName/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute('select * from tblGroup where groupID = :groupID;',
@@ -175,7 +174,7 @@ void main() async {
     );
   });
 
-  app.get('/kidNames/<groupID>', (Request request, String groupID) async {
+  app.get('${config.prefix}/kidNames/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
 
     var results = await conn.execute(
@@ -203,7 +202,7 @@ void main() async {
         );
   });
 
-  app.get('/myKids', (Request request) async {
+  app.get('${config.prefix}/myKids', (Request request) async {
     final conn = await config.connectToDatabase();
 
     String user = (request.context["payload"]! as ContextPayload).user;
@@ -226,6 +225,7 @@ void main() async {
       kid.groupID = int.parse(row.colByName("groupID") ?? '0');
       kid.familyID = int.parse(row.colByName("familyID") ?? '0');
       kid.grade = int.parse(row.colByName("grade") ?? '0');
+      kid.age = row.typedAssoc()["age"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(kid.toJSON());
@@ -237,7 +237,7 @@ void main() async {
     );
   });
 
-  app.get('/group/<groupID>/<date>',
+  app.get('${config.prefix}/group/<groupID>/<date>',
       (Request request, String groupID, date) async {
     final conn = await config.connectToDatabase();
 
@@ -254,7 +254,7 @@ void main() async {
 
     var results2 = await conn.execute(
         ""
-        "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, "
+        "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, k.age, "
         "case when a.today is null then 'N' else "
         "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID "
         "from tblKid k left outer join tblAttendance a on k.kidID = a.kidID "
@@ -270,6 +270,7 @@ void main() async {
       attend.kid!.grade = row.typedAssoc()['grade'];
       attend.kid!.familyID = row.typedAssoc()['familyID'];
       attend.kid!.groupID = row.typedAssoc()['groupID'];
+      attend.kid!.age = row.typedAssoc()['age'];
 
       //attend.verse = row.colByName["a.verse"];
       //print(row.colByName["a.verse"]);
@@ -294,7 +295,7 @@ void main() async {
     );
   });
 
-  app.post('/updateAttendance', (Request request) async {
+  app.post('${config.prefix}/updateAttendance', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
@@ -346,83 +347,136 @@ void main() async {
     return Response.ok('hello-world');
   });
 
-  app.post('/addKid', (Request request) async {
+  app.get('${config.prefix}/getFamily/<familyID>', (Request request, String familyIDString) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
-    var kid = Kid.fromJSONObject(jsonDecode(body));
+    int familyID = int.parse(familyIDString);
 
-    int? groupID;
-    var getGroupID = await conn.execute(""
-        "select groupID from tblGroup where groupName = :groupName;",
-    {'groupName': kid.groupName});
-
-    for (final row in getGroupID.rows) {
-      groupID = row.typedAssoc()['groupID'];
+    IResultSet result = await conn.execute("select * from tblFamily where familyID = :familyID", {"familyID": familyID});
+    Family family = Family();
+    if(result.numOfRows > 0) {
+      var row = result.rows.first.typedAssoc();
+      family.id = row["familyID"];
+      family.familyName = row["familyName"];
+      family.parentName = row["parentName"];
+      family.phone = row["phone"];
+      family.email = row["email"];
+      family.address = row["address"];
+    }
+    result = await conn.execute("select * from tblKid where familyID = :familyID", {"familyID": familyID});
+    List<Map<String, dynamic>> members = [];
+    for(var row in result.rows) {
+      Kid kid = Kid();
+      kid.kidID = row.typedAssoc()['kidID'];
+      kid.firstName = row.typedAssoc()['firstName'];
+      kid.lastName = row.typedAssoc()['lastName'];
+      kid.grade = row.typedAssoc()['grade'];
+      kid.familyID = row.typedAssoc()['familyID'];
+      kid.groupID = row.typedAssoc()['groupID'];
+      kid.age = row.typedAssoc()['age'];
+      members.add(kid.toJSON());
     }
 
-    var checkFamily = await conn.execute('select * from tblFamily where familyName = :familyName',
-    {'familyName': kid.family!.familyName});
-
-    if(checkFamily.rows.isEmpty) {
-      int? familyID;
-      var addFamily = await conn.execute(
-          "insert into tblFamily (familyName, address, phone, email)"
-              "values (:familyName, :address, :phone, :email);",
-          {
-            'familyName': kid.family!.familyName,
-            'address': kid.family!.address,
-            'phone': kid.family!.phone,
-            'email': kid.family!.email,
-          }
-      );
-
-      var getFamilyID = await conn.execute('select familyID from tblFamily where familyName = :familyName',
-          {'familyName': kid.family!.familyName});
-
-      for (final row in getFamilyID.rows) {
-        familyID = row.typedAssoc()['familyID'];
-      }
-
-      var addKid = await conn.execute(
-          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
-              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
-          {
-            'familyID': familyID,
-            'grade': kid.grade,
-            'firstName': kid.firstName,
-            'lastName': kid.lastName,
-            'groupID': groupID,
-          }
-      );
-    } else {
-      int? familyID;
-      var getFamilyID = await conn.execute(""
-          "select familyID from tblFamily where familyName = :familyName;",
-          {'familyName': kid.family!.familyName});
-
-      for (final row in getFamilyID.rows) {
-        familyID = row.typedAssoc()['familyID'];
-      }
-
-      var addKid = await conn.execute(
-          "insert into tblKid (familyID, grade, firstName, lastName, groupID)"
-              "values (:familyID, :grade, :firstName, :lastName, :groupID);",
-          {
-            'familyID': familyID,
-            'grade': kid.grade,
-            'firstName': kid.firstName,
-            'lastName': kid.lastName,
-            'groupID': groupID,
-          }
-      );
-    }
+    var data = {
+      "family": family.toJSON(),
+      "members": members
+    };
 
     conn.close();
-    return Response.ok('hello-world');
+    return Response.ok(jsonEncode(data));
+  });
+  app.post('${config.prefix}/addKid', (Request request) async {
+    final body = await request.readAsString();
+    final conn = await config.connectToDatabase();
+
+    var data = jsonDecode(body);
+    List<Kid> kids = [];
+    for(var kid in data["kids"]) {
+      kids.add(Kid.fromJSONObject(kid));
+    }
+    Family family = Family.fromJSONObect(data["family"]);
+
+    // figure out the family name...
+    List<String> lastNames = [];
+    for(var kid in kids) {
+      if(kid.lastName != null && kid.lastName!.isNotEmpty && !lastNames.contains(kid.lastName)) {
+        lastNames.add(kid.lastName!);
+      }
+    }
+    family.familyName = lastNames.join(",");
+
+    // insert / update the family
+    if(family.id <= 0) {
+      IResultSet result = await conn.execute("insert into tblFamily (familyName, parentName, address, phone, email)"
+          "values (:familyName, :parentName, :address, :phone, :email);",
+          {
+            'familyName': family.familyName,
+            "parentName": family.parentName,
+            'address': family.address,
+            'phone': family.phone,
+            'email': family.email,
+          }
+      );
+      family.id = result.lastInsertID.toInt();
+    } else {
+      IResultSet result = await conn.execute("update tblFamily set familyName = :familyName, parentName = :parentName, address = :address, phone = :phone, email = :email where familyID = :familyID",
+          {
+            'familyID': family.id,
+            'familyName': family.familyName,
+            "parentName": family.parentName,
+            'address': family.address,
+            'phone': family.phone,
+            'email': family.email,
+          }
+      );
+    }
+
+    for(var kid in kids) {
+      // insert / update
+      if(kid.kidID == null || kid.kidID! <= 0) {
+        IResultSet result = await conn.execute(
+            "insert into tblKid (familyID, grade, firstName, lastName, groupID, age)"
+                "values (:familyID, :grade, :firstName, :lastName, :groupID, :age);",
+            {
+              'familyID': family.id,
+              'grade': kid.grade,
+              'firstName': kid.firstName,
+              'lastName': kid.lastName,
+              'groupID': kid.groupID,
+              'age': kid.age,
+            }
+        );
+        kid.kidID = result.lastInsertID.toInt();
+      } else {
+        IResultSet result = await conn.execute("update tblKid set familyID = :familyID, firstName = :firstName, lastName = :lastName, groupID = :groupID, grade = :grade, age = :age where kidID = :kidID",
+            {
+              'familyID': family.id,
+              'grade': kid.grade,
+              'firstName': kid.firstName,
+              'lastName': kid.lastName,
+              'groupID': kid.groupID,
+              'age': kid.age,
+              'kidID': kid.kidID,
+            }
+        );
+      }
+    }
+    
+    List<Map<String, dynamic>> returnList = [];
+    for(var kid in kids) {
+      returnList.add(kid.toJSON());
+    }
+    var returnData = {
+      "kids": returnList,
+      "family": family.toJSON(),
+    };
+
+    conn.close();
+    return Response.ok(jsonEncode(returnData));
   });
 
-  app.post('/addGroup', (Request request) async {
+  app.post('${config.prefix}/addGroup', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
 
@@ -445,6 +499,7 @@ void main() async {
       .addMiddleware(AuthProvider.createMiddleware(requestHandler: AuthProvider.handle))
       .addHandler(app);
 
-  config.load();
+  print("Listening on localhost:8080");
+  print("Started at ${DateTime.now()}");
   var server = await io.serve(_handler, 'localhost', 8080);
 }

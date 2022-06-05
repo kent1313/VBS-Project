@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert' as convert;
-import 'package:http/http.dart' as http;
 import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 
