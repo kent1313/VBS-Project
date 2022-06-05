@@ -29,6 +29,7 @@ class _AddKidState extends State<AddKid> {
   TextEditingController phone = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController age = TextEditingController();
+  late FocusNode firstNameFocusNode;
   String message = '';
   bool badInput = false;
   String grade = 'Pick a grade';
@@ -79,6 +80,13 @@ class _AddKidState extends State<AddKid> {
       setupTextControllers();
       setState(() {});
     });
+    firstNameFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    firstNameFocusNode.dispose();
+    super.dispose();
   }
 
   setupTextControllers() {
@@ -112,7 +120,7 @@ class _AddKidState extends State<AddKid> {
       kid.family!.email = email.text;
     });
     age.addListener(() {
-      if(age.text.isEmpty) {
+      if (age.text.isEmpty) {
         kid.age = 0;
       } else {
         kid.age = int.parse(age.text);
@@ -127,310 +135,324 @@ class _AddKidState extends State<AddKid> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-        appBar: AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text((firstName.text.isEmpty && lastName.text.isEmpty) ||
-                  badInput == true
-              ? "New Kid"
-              : "Editing: ${firstName.text} ${lastName.text}"),
-        ),
-        body: Center(
-            child: Align(
-          alignment: Alignment.center,
-          child: Form(
-            key: _formKey,
-            child: Column(children: [
-              Visibility(
-                child: Container(
-                    padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
-                    child: Text(
-                      message,
-                      style: const TextStyle(
-                        color: Colors.red,
-                      ),
-                    )),
-                visible: badInput,
-              ),
-              Visibility(
-                visible: familyMembers.length == 1,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(10, 20, 5, 5),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'First Name',
-                          ),
-                          controller: firstName,
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(RegExp(
-                                r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter a first name!";
-                            }
-                            if (value.length > 25) {
-                              return "Please keep the name less than 25 characters";
-                            }
-                            return null;
-                          },
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.add, control: true):
+            newFamilyMember,
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true):
+        newFamilyMember,
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true): saveKid,
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that was created by
+            // the App.build method, and use it to set our appbar title.
+            title: Text((firstName.text.isEmpty && lastName.text.isEmpty) ||
+                    badInput == true
+                ? "New Kid"
+                : "Editing: ${firstName.text} ${lastName.text}"),
+          ),
+          body: Center(
+              child: Align(
+            alignment: Alignment.center,
+            child: Form(
+              key: _formKey,
+              child: Column(children: [
+                Visibility(
+                  child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
+                      child: Text(
+                        message,
+                        style: const TextStyle(
+                          color: Colors.red,
                         ),
-                      ),
-                    ),
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(5, 20, 10, 5),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Last Name',
-                          ),
-                          controller: lastName,
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(RegExp(
-                                r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter a first name!";
-                            }
-                            if (value.length > 25) {
-                              return "Please keep the name less than 25 characters";
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                      )),
+                  visible: badInput,
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                child: Visibility(
+                Visibility(
                   visible: familyMembers.length == 1,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          if (existingFamily) {
-                            existingFamily = false;
-                            setState(() {});
-                          } else {
-                            existingFamily = true;
-                            setState(() {});
-                          }
-                        },
-                        child: Text(existingFamily
-                            ? 'Create new family'
-                            : 'Use existing family'),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(10, 20, 5, 5),
+                          child: TextFormField(
+                            autofocus: true,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'First Name',
+                            ),
+                            controller: firstName,
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(RegExp(
+                                  r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter a first name!";
+                              }
+                              if (value.length > 25) {
+                                return "Please keep the name less than 25 characters";
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(5, 20, 10, 5),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Last Name',
+                            ),
+                            controller: lastName,
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(RegExp(
+                                  r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter a last name!";
+                              }
+                              if (value.length > 25) {
+                                return "Please keep the name less than 25 characters";
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                child: TextField(
-                  enabled: existingFamily ? false : true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Address',
-                  ),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(
-                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ,1,2,3,4,5,6,7,8,9,0,.]'))
-                  ],
-                  controller: address,
-                  maxLines: 4,
-                ),
-              ),
-              Row(
-                children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 5, 5),
-                      child: TextField(
-                        enabled: existingFamily ? false : true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Phone',
-                        ),
-                        controller: phone,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
-                        ],
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(5, 10, 10, 5),
-                      child: TextField(
-                        enabled: existingFamily ? false : true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Email',
-                        ),
-                        controller: email,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Visibility(
-                    visible: familyMembers.length > 1,
-                    child: Flexible(
-                        child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: familyMembers.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                title: Text(familyMembers[index].firstName ??
-                                    "no name"),
-                              );
-                            })),
-                  ),
-                  Expanded(
-                    child: Column(
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  child: Visibility(
+                    visible: familyMembers.length == 1,
+                    child: Row(
                       children: [
-                        Visibility(
-                          visible: familyMembers.length > 1,
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(10, 20, 5, 5),
-                                  child: TextField(
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'First Name',
+                        ElevatedButton(
+                          onPressed: () {
+                            if (existingFamily) {
+                              existingFamily = false;
+                              setState(() {});
+                            } else {
+                              existingFamily = true;
+                              setState(() {});
+                            }
+                          },
+                          child: Text(existingFamily
+                              ? 'Create new family'
+                              : 'Use existing family'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  child: TextField(
+                    enabled: existingFamily ? false : true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Address',
+                    ),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(
+                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ,1,2,3,4,5,6,7,8,9,0,.]'))
+                    ],
+                    controller: address,
+                    maxLines: 4,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 5, 5),
+                        child: TextField(
+                          enabled: existingFamily ? false : true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Phone',
+                          ),
+                          controller: phone,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
+                          ],
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(5, 10, 10, 5),
+                        child: TextField(
+                          enabled: existingFamily ? false : true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Email',
+                          ),
+                          controller: email,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Visibility(
+                      visible: familyMembers.length > 1,
+                      child: Flexible(
+                          child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: familyMembers.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  title: Text(familyMembers[index].firstName ??
+                                      "no name"),
+                                );
+                              })),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Visibility(
+                            visible: familyMembers.length > 1,
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 20, 5, 5),
+                                    child: TextField(
+                                      autofocus: true,
+                                      focusNode: firstNameFocusNode,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: 'First Name',
+                                      ),
+                                      controller: firstName,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(RegExp(
+                                            r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                            r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                      ],
                                     ),
-                                    controller: firstName,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(RegExp(
-                                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                                    ],
                                   ),
                                 ),
-                              ),
+                                Flexible(
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 20, 10, 5),
+                                    child: TextField(
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Last Name',
+                                      ),
+                                      controller: lastName,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(RegExp(
+                                            r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                            r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(10, 10, 20, 20),
+                                  child: DropdownButton<int>(
+                                    value: kid.groupID,
+                                    icon: const Icon(Icons.arrow_downward),
+                                    onChanged: (int? newValue) {
+                                      setState(() {
+                                        kid.groupID = newValue;
+                                      });
+                                    },
+                                    items: groups.map<DropdownMenuItem<int>>(
+                                        (Group group) {
+                                      return DropdownMenuItem<int>(
+                                        value: group.groupID,
+                                        child: Text(group.groupName ?? ""),
+                                      );
+                                    }).toList()
+                                      ..add(DropdownMenuItem(
+                                          child: Text("<Pick a group>"))),
+                                  )),
+                              Container(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                                  child: DropdownButton<int?>(
+                                    value: kid.grade,
+                                    icon: const Icon(Icons.arrow_downward),
+                                    onChanged: (int? newValue) {
+                                      setState(() {
+                                        kid.grade = newValue!;
+                                      });
+                                    },
+                                    items: grades.map<DropdownMenuItem<int?>>(
+                                        (var value) {
+                                      return DropdownMenuItem<int?>(
+                                        value: value["id"] as int?,
+                                        child: Text(value["label"]! as String),
+                                      );
+                                    }).toList(),
+                                  )),
                               Flexible(
                                 child: Container(
                                   padding:
-                                      const EdgeInsets.fromLTRB(5, 20, 10, 5),
+                                      const EdgeInsets.fromLTRB(10, 10, 5, 5),
                                   child: TextField(
+                                    enabled: existingFamily ? false : true,
                                     decoration: const InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: 'Last Name',
+                                      labelText: 'Age',
                                     ),
-                                    controller: lastName,
+                                    controller: age,
                                     inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(RegExp(
-                                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
                                     ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 10, 20, 20),
-                                child: DropdownButton<int>(
-                                  value: kid.groupID,
-                                  icon: const Icon(Icons.arrow_downward),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      kid.groupID = newValue;
-                                    });
-                                  },
-                                  items: groups.map<DropdownMenuItem<int>>(
-                                      (Group group) {
-                                    return DropdownMenuItem<int>(
-                                      value: group.groupID,
-                                      child: Text(group.groupName ?? ""),
-                                    );
-                                  }).toList()
-                                    ..add(DropdownMenuItem(
-                                        child: Text("<Pick a group>"))),
-                                )),
-                            Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                                child: DropdownButton<int?>(
-                                  value: kid.grade,
-                                  icon: const Icon(Icons.arrow_downward),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      kid.grade = newValue!;
-                                    });
-                                  },
-                                  items: grades
-                                      .map<DropdownMenuItem<int?>>((var value) {
-                                    return DropdownMenuItem<int?>(
-                                      value: value["id"] as int?,
-                                      child: Text(value["label"]! as String),
-                                    );
-                                  }).toList(),
-                                )),
-                           Flexible(
-                             child: Container(
-                                padding: const EdgeInsets.fromLTRB(10, 10, 5, 5),
-                                child: TextField(
-                                  enabled: existingFamily ? false : true,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Age',
-                                  ),
-                                  controller: age,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
-                                  ],
-                                ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton(
+                                  onPressed: saveKid,
+                                  child: const Text('Save')),
+                              SizedBox(
+                                width: 10,
                               ),
-                           ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                                onPressed: saveKid, child: const Text('Save')),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            ElevatedButton(
-                                onPressed: newFamilyMember,
-                                child: const Text('Add Family Member')),
-                          ],
-                        ),
-                      ],
+                              ElevatedButton(
+                                  onPressed: newFamilyMember,
+                                  child: const Text('Add Family Member')),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ]),
-          ),
-        )));
+                  ],
+                ),
+              ]),
+            ),
+          ))),
+    );
   }
 
   saveKid() async {
@@ -445,6 +467,7 @@ class _AddKidState extends State<AddKid> {
     kid.family = family;
     familyMembers.add(kid);
     setupTextControllers();
+    firstNameFocusNode.requestFocus();
     setState(() {});
   }
 }

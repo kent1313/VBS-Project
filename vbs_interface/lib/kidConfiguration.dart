@@ -38,93 +38,96 @@ class _kidConfigurationState extends State<kidConfiguration> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if(api.admin == 'none') {
-            permissionDenied2();
-          } else {
-            Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
-          }
-        },
-        child: Icon(Icons.person_add),
-      ),
-      body: Center(
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 0),
-                child: TextField(
-                  controller: search,
-                  onChanged: submitSearch,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Search',
-                    icon: Icon(Icons.search),
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.add, control: true):
+        newButtonClick,
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true):
+        newButtonClick,
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: newButtonClick,
+          child: Icon(Icons.person_add),
+        ),
+        body: Center(
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: TextField(
+                    autofocus: true,
+                    controller: search,
+                    onChanged: submitSearch,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Search',
+                      icon: Icon(Icons.search),
+                    ),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(
+                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                    ],
                   ),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(
-                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                  ],
                 ),
-              ),
-              Flexible(
-                  child: FutureBuilder<List<Kid>> (
-                      future: loadSearch(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          //print(loadGroups());
-                          return ListView.builder (
-                              itemBuilder: (_, index) {
-                                var kid = snapshot.data![index];
-                                var kidFirstNames = kid.firstName;
-                                var kidLastNames = kid.lastName;
-                                var groupName = kid.groupName;
-                                return ListTile(
-                                  leading: const Icon(Icons.account_circle),
-                                  onTap: () {
-                                    // SKP -- changed to add kid so we only use 1 screen
-                                    //  also added the kid argument
-                                    if(api.admin == 'none') {
-                                      permissionDenied1();
-                                    } else {
-                                      Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
-                                    }
-                                  },
-                                  title: Text(kidFirstNames.toString()),
-                                  subtitle: Text(kidLastNames.toString()),
-                                  trailing: Text(groupName.toString()),
-                                );
-                              },
-                              itemCount: snapshot.data!.length
-                          );
-                        } else {
-                          if (snapshot.hasError) {
-                            print('Error: ${snapshot.error}');
-                            return Column(
-                              children: [
-                                Icon(Icons.error_outline,
-                                  color: Colors.red,
-                                  size: 60,),
-                                Text("Error: ${snapshot.error}")
-                              ],
+                Flexible(
+                    child: FutureBuilder<List<Kid>> (
+                        future: loadSearch(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            //print(loadGroups());
+                            return ListView.builder (
+                                itemBuilder: (_, index) {
+                                  var kid = snapshot.data![index];
+                                  var kidFirstNames = kid.firstName;
+                                  var kidLastNames = kid.lastName;
+                                  var groupName = kid.groupName;
+                                  return ListTile(
+                                    leading: const Icon(Icons.account_circle),
+                                    onTap: () {
+                                      // SKP -- changed to add kid so we only use 1 screen
+                                      //  also added the kid argument
+                                      if(api.admin == 'none') {
+                                        permissionDenied1();
+                                      } else {
+                                        Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: kid, groups: groups!));
+                                      }
+                                    },
+                                    title: Text(kidFirstNames.toString()),
+                                    subtitle: Text(kidLastNames.toString()),
+                                    trailing: Text(groupName.toString()),
+                                  );
+                                },
+                                itemCount: snapshot.data!.length
                             );
                           } else {
-                            return CircularProgressIndicator();
+                            if (snapshot.hasError) {
+                              print('Error: ${snapshot.error}');
+                              return Column(
+                                children: [
+                                  Icon(Icons.error_outline,
+                                    color: Colors.red,
+                                    size: 60,),
+                                  Text("Error: ${snapshot.error}")
+                                ],
+                              );
+                            } else {
+                              return CircularProgressIndicator();
+                            }
                           }
                         }
-                      }
 
-                  ),
-              ),
-            ],
-          )
+                    ),
+                ),
+              ],
+            )
+        ),
       ),
     );
   }
@@ -187,6 +190,13 @@ class _kidConfigurationState extends State<kidConfiguration> {
   submitSearch(newValue) {
     print('State reset');
     setState(() {});
+  }
+  newButtonClick() {
+    if(api.admin == 'none') {
+      permissionDenied2();
+    } else {
+      Navigator.pushNamed(context, '/addKid', arguments: KidArguments(kid: Kid(), groups: groups!));
+    }
   }
 }
 
