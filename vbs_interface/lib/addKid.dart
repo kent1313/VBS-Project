@@ -188,419 +188,415 @@ class _AddKidState extends State<AddKid> {
                 ? "New Kid"
                 : "Editing: ${firstName.text} ${lastName.text}"),
           ),
-          body: Center(
-              child: Align(
-            alignment: Alignment.center,
-            child: FutureBuilder<Object>(
-              future: loadFamily(),
-              builder: (context, snapshot) {
-                if(snapshot.hasData) {
-                  return Form(
-                    key: _formKey,
-                    child: SingleChildScrollView(
-                      child: Column(children: [
-                        Visibility(
-                          child: Container(
-                              padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
-                              child: Text(
-                                message,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                ),
-                              )),
-                          visible: message.isNotEmpty,
-                        ),
-                        Visibility(
-                          visible: familyMembers.length == 1,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      10, 20, 5, 5),
-                                  child: TextFormField(
-                                    autofocus: true,
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'First Name',
-                                    ),
-                                    controller: firstName,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(RegExp(
-                                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
-                                    ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter a first name!";
-                                      }
-                                      if (value.length > 25) {
-                                        return "Please keep the name less than 25 characters";
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
+          body: FutureBuilder<Object>(
+            future: loadFamily(),
+            builder: (context, snapshot) {
+              if(snapshot.hasData) {
+                return Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(children: [
+                      Visibility(
+                        child: Container(
+                            padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
+                            child: Text(
+                              message,
+                              style: const TextStyle(
+                                color: Colors.red,
                               ),
-                              Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      5, 20, 10, 5),
-                                  child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Last Name',
-                                    ),
-                                    controller: lastName,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(RegExp(
-                                          r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                          r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
-                                    ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter a last name!";
-                                      }
-                                      if (value.length > 25) {
-                                        return "Please keep the name less than 25 characters";
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                          child: Visibility(
-                            visible: familyMembers.length == 1,
-                            child: Row(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    if (existingFamily) {
-                                      existingFamily = false;
-                                      setState(() {});
-                                    } else {
-                                      existingFamily = true;
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: Text(existingFamily
-                                      ? 'Create new family'
-                                      : 'Use existing family'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                          child: TextField(
-                            enabled: existingFamily ? false : true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Parent\'s Name',
-                            ),
-                            controller: parentName
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                          child: TextField(
-                            enabled: existingFamily ? false : true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Address',
-                            ),
-                            controller: address,
-                            maxLines: 4,
-                          ),
-                        ),
-                        Row(
+                            )),
+                        visible: message.isNotEmpty,
+                      ),
+                      Visibility(
+                        visible: familyMembers.length == 1,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Flexible(
                               child: Container(
                                 padding: const EdgeInsets.fromLTRB(
-                                    10, 10, 5, 5),
-                                child: TextField(
-                                  enabled: existingFamily ? false : true,
+                                    10, 20, 5, 5),
+                                child: TextFormField(
+                                  autofocus: true,
                                   decoration: const InputDecoration(
                                     border: OutlineInputBorder(),
-                                    labelText: 'Phone',
+                                    labelText: 'First Name',
                                   ),
-                                  controller: phone,
+                                  controller: firstName,
                                   inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
+                                    FilteringTextInputFormatter.allow(RegExp(
+                                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
                                   ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter a first name!";
+                                    }
+                                    if (value.length > 25) {
+                                      return "Please keep the name less than 25 characters";
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ),
                             Flexible(
                               child: Container(
                                 padding: const EdgeInsets.fromLTRB(
-                                    5, 10, 10, 5),
-                                child: TextField(
-                                  enabled: existingFamily ? false : true,
+                                    5, 20, 10, 5),
+                                child: TextFormField(
                                   decoration: const InputDecoration(
                                     border: OutlineInputBorder(),
-                                    labelText: 'Email',
+                                    labelText: 'Last Name',
                                   ),
-                                  controller: email,
+                                  controller: lastName,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.allow(RegExp(
+                                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,]'))
+                                  ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter a last name!";
+                                    }
+                                    if (value.length > 25) {
+                                      return "Please keep the name less than 25 characters";
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        Row(
-                          children: [
-                            Visibility(
-                              visible: familyMembers.length > 1,
-                              child: Flexible(
-                                  child: Stack(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(),
-                                            borderRadius: BorderRadius.circular(
-                                                5),
-                                          ),
-                                          child: ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: familyMembers.length,
-                                              itemBuilder: (context, index) {
-                                                return ListTile(
-                                                  title: Text(
-                                                      familyMembers[index]
-                                                          .firstName ??
-                                                          "no name"),
-                                                  onTap: () {
-                                                    selectFamilyMember(familyMembers[index]);
-                                                  },
-                                                );
-                                              }),
-                                        ),
-                                      ),
-                                      Positioned(
-                                          left: 15,
-                                          top: 1,
-                                          child: Container(
-                                            padding: EdgeInsets.only(bottom: 10,
-                                                left: 10,
-                                                right: 10),
-                                            color: Colors.white,
-                                            child: Text(
-                                              'Family Members',
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12),
-                                            ),
-                                          )),
-                                    ],
-                                  )),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                        child: Visibility(
+                          visible: familyMembers.length == 1,
+                          child: Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (existingFamily) {
+                                    existingFamily = false;
+                                    setState(() {});
+                                  } else {
+                                    existingFamily = true;
+                                    setState(() {});
+                                  }
+                                },
+                                child: Text(existingFamily
+                                    ? 'Create new family'
+                                    : 'Use existing family'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                        child: TextField(
+                          enabled: existingFamily ? false : true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Parent\'s Name',
+                          ),
+                          controller: parentName
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                        child: TextField(
+                          enabled: existingFamily ? false : true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Address',
+                          ),
+                          controller: address,
+                          maxLines: 4,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(
+                                  10, 10, 5, 5),
+                              child: TextField(
+                                enabled: existingFamily ? false : true,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Phone',
+                                ),
+                                controller: phone,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[1,2,3,4,5,6,7,8,9,0]'))
+                                ],
+                              ),
                             ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Visibility(
-                                    visible: familyMembers.length > 1,
-                                    child: Row(
-                                      children: [
-                                        Flexible(
-                                          child: Container(
-                                            padding:
-                                            const EdgeInsets.fromLTRB(
-                                                10, 20, 5, 5),
-                                            child: TextFormField(
-                                              autofocus: true,
-                                              focusNode: firstNameFocusNode,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: 'First Name',
-                                              ),
-                                              controller: firstName,
-                                              inputFormatters: <
-                                                  TextInputFormatter>[
-                                                FilteringTextInputFormatter
-                                                    .allow(RegExp(
-                                                    r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                                    r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                                              ],
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Please enter a first name!";
-                                                }
-                                                if (value.length > 25) {
-                                                  return "Please keep the name less than 25 characters";
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(
+                                  5, 10, 10, 5),
+                              child: TextField(
+                                enabled: existingFamily ? false : true,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Email',
+                                ),
+                                controller: email,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Visibility(
+                            visible: familyMembers.length > 1,
+                            child: Flexible(
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(),
+                                          borderRadius: BorderRadius.circular(
+                                              5),
                                         ),
-                                        Flexible(
-                                          child: Container(
-                                            padding:
-                                            const EdgeInsets.fromLTRB(
-                                                5, 20, 10, 5),
-                                            child: TextFormField(
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: 'Last Name',
-                                              ),
-                                              controller: lastName,
-                                              inputFormatters: <
-                                                  TextInputFormatter>[
-                                                FilteringTextInputFormatter
-                                                    .allow(RegExp(
-                                                    r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                                                    r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                                              ],
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Please enter a last name!";
-                                                }
-                                                if (value.length > 25) {
-                                                  return "Please keep the name less than 25 characters";
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                            padding:
-                                            const EdgeInsets.fromLTRB(
-                                                10, 10, 20, 20),
-                                            child: DropdownButtonFormField<int>(
-                                              value: kid.groupID,
-                                              icon: const Icon(
-                                                  Icons.arrow_downward),
-                                              onChanged: (int? newValue) {
-                                                setState(() {
-                                                  kid.groupID = newValue;
-                                                });
-                                              },
-                                              items: groups.map<
-                                                  DropdownMenuItem<int>>(
-                                                      (Group group) {
-                                                    return DropdownMenuItem<int>(
-                                                      value: group.groupID,
-                                                      child: Text("${group.groupName ?? ""} (${group.memberCount})"),
-                                                    );
-                                                  }).toList()
-                                                ..add(DropdownMenuItem(
-                                                    child: Text(
-                                                        "<Pick a group>")
-                                                )
-                                                ),
-                                              validator: (value) {
-                                                if(value == null) {
-                                                  return "Please select a group";
-                                                }
-                                                return null;
-                                              },
-                                            )),
+                                        child: ListView.builder(
+                                            shrinkWrap: true,
+                                            itemCount: familyMembers.length,
+                                            itemBuilder: (context, index) {
+                                              return ListTile(
+                                                title: Text(
+                                                    familyMembers[index]
+                                                        .firstName ??
+                                                        "no name"),
+                                                onTap: () {
+                                                  selectFamilyMember(familyMembers[index]);
+                                                },
+                                              );
+                                            }),
                                       ),
-                                      Expanded(
+                                    ),
+                                    Positioned(
+                                        left: 15,
+                                        top: 1,
                                         child: Container(
-                                            padding:
-                                            const EdgeInsets.fromLTRB(
-                                                20, 10, 20, 20),
-                                            child: DropdownButtonFormField<int?>(
-                                              value: kid.grade,
-                                              icon: const Icon(
-                                                  Icons.arrow_downward),
-                                              onChanged: (int? newValue) {
-                                                setState(() {
-                                                  kid.grade = newValue!;
-                                                });
-                                              },
-                                              items: grades.map<
-                                                  DropdownMenuItem<int?>>(
-                                                      (var value) {
-                                                    return DropdownMenuItem<int?>(
-                                                      value: value["id"] as int?,
-                                                      child: Text(
-                                                          value["label"]! as String),
-                                                    );
-                                                  }).toList(),
-                                              validator: (value) {
-                                                if(value == null) {
-                                                  return "Grade is required";
-                                                }
-                                                return null;
-                                              },
-                                            )),
+                                          padding: EdgeInsets.only(bottom: 10,
+                                              left: 10,
+                                              right: 10),
+                                          color: Colors.white,
+                                          child: Text(
+                                            'Family Members',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12),
+                                          ),
+                                        )),
+                                  ],
+                                )),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Visibility(
+                                  visible: familyMembers.length > 1,
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Container(
+                                          padding:
+                                          const EdgeInsets.fromLTRB(
+                                              10, 20, 5, 5),
+                                          child: TextFormField(
+                                            autofocus: true,
+                                            focusNode: firstNameFocusNode,
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: 'First Name',
+                                            ),
+                                            controller: firstName,
+                                            inputFormatters: <
+                                                TextInputFormatter>[
+                                              FilteringTextInputFormatter
+                                                  .allow(RegExp(
+                                                  r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
+                                            ],
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Please enter a first name!";
+                                              }
+                                              if (value.length > 25) {
+                                                return "Please keep the name less than 25 characters";
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
                                       ),
                                       Flexible(
                                         child: Container(
                                           padding:
                                           const EdgeInsets.fromLTRB(
-                                              10, 10, 5, 5),
-                                          child: TextField(
-                                            enabled: existingFamily
-                                                ? false
-                                                : true,
+                                              5, 20, 10, 5),
+                                          child: TextFormField(
                                             decoration: const InputDecoration(
                                               border: OutlineInputBorder(),
-                                              labelText: 'Age',
+                                              labelText: 'Last Name',
                                             ),
-                                            controller: age,
+                                            controller: lastName,
                                             inputFormatters: <
                                                 TextInputFormatter>[
-                                              FilteringTextInputFormatter.allow(
-                                                  RegExp(
-                                                      r'[1,2,3,4,5,6,7,8,9,0]'))
+                                              FilteringTextInputFormatter
+                                                  .allow(RegExp(
+                                                  r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
+                                                  r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
                                             ],
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Please enter a last name!";
+                                              }
+                                              if (value.length > 25) {
+                                                return "Please keep the name less than 25 characters";
+                                              }
+                                              return null;
+                                            },
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      ElevatedButton(
-                                          onPressed: saveKid,
-                                          child: const Text('Save')),
-                                      SizedBox(
-                                        width: 10,
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                          padding:
+                                          const EdgeInsets.fromLTRB(
+                                              10, 10, 20, 20),
+                                          child: DropdownButtonFormField<int>(
+                                            value: kid.groupID,
+                                            icon: const Icon(
+                                                Icons.arrow_downward),
+                                            onChanged: (int? newValue) {
+                                              setState(() {
+                                                kid.groupID = newValue;
+                                              });
+                                            },
+                                            items: groups.map<
+                                                DropdownMenuItem<int>>(
+                                                    (Group group) {
+                                                  return DropdownMenuItem<int>(
+                                                    value: group.groupID,
+                                                    child: Text("${group.groupName ?? ""} (${group.memberCount})"),
+                                                  );
+                                                }).toList()
+                                              ..add(DropdownMenuItem(
+                                                  child: Text(
+                                                      "<Pick a group>")
+                                              )
+                                              ),
+                                            validator: (value) {
+                                              if(value == null) {
+                                                return "Please select a group";
+                                              }
+                                              return null;
+                                            },
+                                          )),
+                                    ),
+                                    Expanded(
+                                      child: Container(
+                                          padding:
+                                          const EdgeInsets.fromLTRB(
+                                              20, 10, 20, 20),
+                                          child: DropdownButtonFormField<int?>(
+                                            value: kid.grade,
+                                            icon: const Icon(
+                                                Icons.arrow_downward),
+                                            onChanged: (int? newValue) {
+                                              setState(() {
+                                                kid.grade = newValue!;
+                                              });
+                                            },
+                                            items: grades.map<
+                                                DropdownMenuItem<int?>>(
+                                                    (var value) {
+                                                  return DropdownMenuItem<int?>(
+                                                    value: value["id"] as int?,
+                                                    child: Text(
+                                                        value["label"]! as String),
+                                                  );
+                                                }).toList(),
+                                            validator: (value) {
+                                              if(value == null) {
+                                                return "Grade is required";
+                                              }
+                                              return null;
+                                            },
+                                          )),
+                                    ),
+                                    Flexible(
+                                      child: Container(
+                                        padding:
+                                        const EdgeInsets.fromLTRB(
+                                            10, 10, 5, 5),
+                                        child: TextField(
+                                          enabled: existingFamily
+                                              ? false
+                                              : true,
+                                          decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: 'Age',
+                                          ),
+                                          controller: age,
+                                          inputFormatters: <
+                                              TextInputFormatter>[
+                                            FilteringTextInputFormatter.allow(
+                                                RegExp(
+                                                    r'[1,2,3,4,5,6,7,8,9,0]'))
+                                          ],
+                                        ),
                                       ),
-                                      ElevatedButton(
-                                          onPressed: newFamilyMember,
-                                          child: const Text(
-                                              'Add Family Member')),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                        onPressed: saveKid,
+                                        child: const Text('Save')),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    ElevatedButton(
+                                        onPressed: newFamilyMember,
+                                        child: const Text(
+                                            'Add Family Member')),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ]),
-                    ),
-                  );
-                } else {
-                  return CircularProgressIndicator();
-                }
+                          ),
+                        ],
+                      ),
+                    ]),
+                  ),
+                );
+              } else {
+                return CircularProgressIndicator();
               }
-            ),
-          ))),
+            }
+          )),
     );
   }
 
@@ -643,7 +639,7 @@ class _AddKidState extends State<AddKid> {
     var result = await api.loadFamily(context, family.id);
     familyLoaded = true;
     if(result.members!.length > 0) {
-      kid = result.members![1];
+      kid = result.members![0];
     }
     familyMembers.clear();
     familyMembers.addAll(result.members!);
