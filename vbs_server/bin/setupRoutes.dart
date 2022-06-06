@@ -178,7 +178,7 @@ class SetupRoutes {
         combo.add({
           "name": "${leader.firstName} ${leader.lastName}",
           "user": null,
-          "leader": leader,
+          "leader": leader.toJSON(),
         });
       }
 
