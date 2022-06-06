@@ -48,6 +48,10 @@ class API {
     } else {
       api.token = token;
     }
+    String? admin = prefs.getString("admin");
+    if(admin != null) {
+      api.admin = admin;
+    }
   }
 
   // ------------------------------------
