@@ -48,6 +48,10 @@ class API {
     } else {
       api.token = token;
     }
+    String? admin = prefs.getString("admin");
+    if(admin != null) {
+      api.admin = admin;
+    }
   }
 
   // ------------------------------------
@@ -89,11 +93,22 @@ class API {
     } else {
       response = await http.post(url, headers: {'authorization': token}, body: body);
     }
+    print("  Returned: ${response.statusCode}");
     if(response.statusCode == 403) {
       // The await makes it hold until the login is complete,
       // then return the response
       await Navigator.pushNamed(context, '/login');
       return sendMessage(context: context, path: path, method: method, body: body);
+    }
+    if(response.statusCode == 500) {
+      var errorMessage = "Unknown 500 Server Error";
+      try {
+        var json = jsonDecode(response.body);
+        errorMessage = json["error"];
+      } catch(e) {
+        print("Server Error: ${response.body}");
+      }
+      throw Exception("Server Error: $errorMessage");
     }
     return response.body;
   }

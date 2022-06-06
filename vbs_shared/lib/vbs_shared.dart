@@ -5,12 +5,14 @@ class Group {
   int? groupID;
   String? groupName;
   int? mainLeaderID;
+  int? memberCount;
 
   Object toJSON() {
     Object obj = {
       'groupID': groupID,
       'groupName': groupName,
       'mainLeaderID': mainLeaderID,
+      'memberCount': memberCount,
     };
     return obj;
   }
@@ -25,6 +27,7 @@ class Group {
     group.groupID = obj["groupID"];
     group.groupName = obj["groupName"];
     group.mainLeaderID = obj["mainLeaderID"];
+    group.memberCount = obj["memberCount"];
     return group;
   }
 
