@@ -243,7 +243,7 @@ class User {
   String userName = "";
   String password = "";
   int leaderID = -1;
-  bool systemAdmin = false;
+  String systemAdmin = "N";
 
   static User fromJSONObject(Map<String, dynamic> json) {
     User user = User();

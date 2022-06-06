@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert' as convert;
-import 'package:http/http.dart' as http;
 import 'package:vbs_interface/kids.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
@@ -36,7 +34,7 @@ class _GroupsState extends State<Groups> {
           onPressed: () {
             Navigator.pushNamed(context, '/addGroup').then((value) => setState(() {}));
           },
-          child: Icon(Icons.group_add),
+          child: const Icon(Icons.group_add),
         ),
 
         appBar: AppBar(
@@ -57,31 +55,32 @@ class _GroupsState extends State<Groups> {
                         var group = snapshot.data![index];
                         var groupName = group.groupName;
                         return ListTile(
-                          leading: Icon(Icons.group),
+                          leading: const Icon(Icons.group),
                           onTap: () {
-                            var parm = KidParameter(group.groupID ?? 0);
+                            var arg = KidParameter(group.groupID ?? 0);
 
-                            Navigator.pushNamed(context, '/kids', arguments: parm
+                            Navigator.pushNamed(context, '/kids', arguments: arg
                             );
                           },
                           title: Text(groupName ?? 'No Name!!'),
+                          trailing: Text("${group.memberCount}"),
                         );
                       },
                       itemCount: snapshot.data!.length
                   );
                 } else {
                   if (snapshot.hasError) {
-                    print('Error: ${snapshot.error}');
+                    debugPrint('Error: ${snapshot.error}');
                     return Column(
                       children: [
-                        Icon(Icons.error_outline,
+                        const Icon(Icons.error_outline,
                           color: Colors.red,
                           size: 60,),
                         Text("Error: ${snapshot.error}")
                       ],
                     );
                   } else {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   }
                 }
               }

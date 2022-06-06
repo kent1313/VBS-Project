@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert' as convert;
-import 'package:http/http.dart' as http;
-import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
-import 'package:side_navigation/side_navigation.dart';
 
 class userConfiguration extends StatefulWidget {
   const userConfiguration({Key? key, required this.title}) : super(key: key);
@@ -27,7 +23,6 @@ class userConfiguration extends StatefulWidget {
 class _userConfigurationState extends State<userConfiguration> {
   int selectedIndex = 0;
   TextEditingController search = TextEditingController();
-  List<Kid>? list;
 
   @override
   Widget build(BuildContext context) {
@@ -69,28 +64,15 @@ class _userConfigurationState extends State<userConfiguration> {
                 ),
               ),
               Flexible(
-                child: FutureBuilder<List<Kid>> (
+                child: FutureBuilder<Map<String, dynamic>> (
                     future: loadSearch(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        //print(loadGroups());
-                        return ListView.builder (
-                            itemBuilder: (_, index) {
-                              var kid = snapshot.data![index];
-                              var kidFirstNames = kid.firstName;
-                              var kidLastNames = kid.lastName;
-                              var groupName = api.getGroupName(context, kid.groupID ?? 0);
-                              return ListTile(
-                                leading: Icon(Icons.account_circle),
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/editKid',);
-                                },
-                                title: Text(kidFirstNames.toString()),
-                                subtitle: Text(kidLastNames.toString()),
-                                trailing: Text(groupName.toString()),
-                              );
-                            },
-                            itemCount: snapshot.data!.length
+                        return SingleChildScrollView(
+                          child: Wrap(
+                            direction: Axis.horizontal,
+                            children: snapshot.data!["allLeaders"]["groups"].map<Widget>((group)=>LeaderByGroupCard(group)).toList() ,
+                          ),
                         );
                       } else {
                         if (snapshot.hasError) {
@@ -117,21 +99,55 @@ class _userConfigurationState extends State<userConfiguration> {
     );
   }
 
-  Future<List<Kid>> loadSearch() async {
+  Future<Map<String, dynamic>> loadSearch() async {
+    var data = <String, dynamic>{};
     if(search.text.isEmpty) {
-      if(list == null) {
-        list = await api.loadAllKids(context);
-        return list!;
-      } else {
-        return list!;
-      }
+      data["allLeaders"] = await api.getAllLeaders(context);
     } else {
-      return await api.loadSearchKids(context,search.text);
+      // return await api.loadSearchKids(context,search.text);
     }
+    return data;
   }
   submitSearch(newValue) {
     setState(() {
 
     });
   }
+}
+
+class LeaderByGroupCard extends StatelessWidget {
+  Map<String, dynamic> group;
+  LeaderByGroupCard(this.group);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+        child: SizedBox(
+          width: 300,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: BorderRadius.circular(
+                          30),
+                    ),
+                    child: Text(group["name"],
+                    style: TextStyle(fontSize: 20),),
+                ),
+              ),
+              Column(
+                children: group["leaders"].map<Widget>((leader) => ListTile(
+                  title: Text("${leader["firstName"]} ${leader["lastName"]}"),
+                )).toList(),
+              ),
+            ],
+          ),
+        )
+    );
+  }
+  
 }

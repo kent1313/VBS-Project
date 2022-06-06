@@ -196,6 +196,11 @@ class API {
     );
   }
 
+  Future<Map<String, dynamic>> getAllLeaders(context) async {
+    var response = await sendMessage(context: context, path: "getLeaders");
+    return jsonDecode(response);
+  }
+
   // ------------------------------------
   //  Token-related functions
   // ------------------------------------
