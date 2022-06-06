@@ -36,7 +36,7 @@ class _KidsState extends State<Kids> {
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title),
+          title: Text('${args.groupName}: Kids'),
         ),
         body: Center(
           // Center is a layout widget. It takes a single child and positions it
@@ -94,6 +94,7 @@ class _KidsState extends State<Kids> {
 
 class KidParameter {
   final int groupID;
+  final String groupName;
 
-  KidParameter(this.groupID);
+  KidParameter(this.groupID, this.groupName);
 }

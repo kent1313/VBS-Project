@@ -140,7 +140,7 @@ class _LoginLogoutTileState extends State<LoginLogoutTile> {
           Navigator.pop(context);
         } else {
           setState(() {});
-          Navigator.pushNamed(context, '/login');
+          Navigator.pushNamed(context, '/login').then((value) => setState((){}));
         }
       },
     );

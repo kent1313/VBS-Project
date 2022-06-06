@@ -54,10 +54,11 @@ class _GroupsState extends State<Groups> {
                       itemBuilder: (_, index) {
                         var group = snapshot.data![index];
                         var groupName = group.groupName;
+                        print(group.toJSON());
                         return ListTile(
                           leading: const Icon(Icons.group),
                           onTap: () {
-                            var arg = KidParameter(group.groupID ?? 0);
+                            var arg = KidParameter(group.groupID ?? 0, group.groupName ?? 'Group');
 
                             Navigator.pushNamed(context, '/kids', arguments: arg
                             );
