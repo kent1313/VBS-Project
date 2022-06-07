@@ -64,7 +64,7 @@ class _GroupsState extends State<Groups> {
                             );
                           },
                           title: Text(groupName ?? 'No Name!!'),
-                          trailing: Text("${group.memberCount}"),
+                          trailing: Text("${group.hereCount}/${group.memberCount}"),
                         );
                       },
                       itemCount: snapshot.data!.length
