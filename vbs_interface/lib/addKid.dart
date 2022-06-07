@@ -644,6 +644,10 @@ class _AddKidState extends State<AddKid> {
     familyMembers.clear();
     familyMembers.addAll(result.members!);
     family = result.family!;
+    for(var kid in familyMembers) {
+      // make sure the family is set
+      kid.family = family;
+    }
     setupTextControllers();
     if(familyMembers.length > 1) {
       firstNameFocusNode.requestFocus();
