@@ -47,7 +47,11 @@ void main() async {
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
 
-    var results = await conn.execute('select *, (select count(*) from tblKid k where k.groupID = g.groupID) cnt from tblGroup g');
+    var now = DateTime.now();
+    var today = "${now.year}-${now.month}-${now.day}";
+    var herePart = "(select count(*) from tblAttendance a, tblKid k where a.today = :today and a.kidID = k.kidID and k.groupID = g.groupID)";
+
+    var results = await conn.execute('select *, (select count(*) from tblKid k where k.groupID = g.groupID) cnt, $herePart here from tblGroup g', {"today": today});
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -57,6 +61,7 @@ void main() async {
       group.groupName = row.colByName("groupName");
       group.mainLeaderID = int.parse(row.colByName('mainLeaderID') ?? '0');
       group.memberCount = row.typedAssoc()["cnt"];
+      group.hereCount = row.typedAssoc()["here"];
       // print all rows as Map<String, String>
       //print(row);
       data.add(group.toJSON());
