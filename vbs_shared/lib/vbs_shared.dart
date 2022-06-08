@@ -110,7 +110,7 @@ class KidCount {
   Map<String, dynamic> toJSON() {
     return {
       'here': here,
-      'groupID': kids,
+      'kids': kids,
     };
   }
 

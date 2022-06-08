@@ -251,28 +251,21 @@ class _MainContent extends State<MainContent> {
             }
           }
       ):
-      Column(
-        children: [
-          Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
-          /*
-          FutureBuilder(
-            future: api.kidCount(context, Date.today().makeString()),
-              builder: (context, snapshot) {
-              if(snapshot.hasData) {
-                return Column(
-                  children: [
-                    Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
-                    Text('There are ${snapshot.data.}'),
-                  ],
-                );
-              } else {
-                return CircularProgressIndicator();
-              }
-            },
-          )
-
-           */
-        ],
+      FutureBuilder<KidCount>(
+        future: loadKidCount(),
+          builder: (context, snapshot) {
+          if(snapshot.hasData) {
+            return Column(
+              children: [
+                Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
+                const SizedBox(height: 10,),
+                Text('There are ${snapshot.data!.here} out of ${snapshot.data!.kids} kids here today', style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic,),),
+              ],
+            );
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
       )
     ):
     Container(
@@ -320,6 +313,11 @@ class _MainContent extends State<MainContent> {
     var userInfo = await api.getUserInfo(context);
     var groupData = await api.loadKids(userInfo.groupID!, context, Date.today());
     return ScreenData(userInfo, groupData);
+  }
+
+  Future<KidCount> loadKidCount() async {
+    var kidCount = await api.kidCount(context, Date.today().makeString());
+    return kidCount;
   }
 }
 
