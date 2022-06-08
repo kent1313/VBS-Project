@@ -123,9 +123,12 @@ class _LoginState extends State<Login> {
       token = convert.jsonDecode(response.body)['token'];
       api.admin = convert.jsonDecode(response.body)['admin'];
       api.token = token;
+      api.userName = user.text;
+      api.password = password.text;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
       await prefs.setString('admin', api.admin);
+      await prefs.setString('userName', user.text);
       Navigator.pop(context);
       (context as Element).reassemble();
     } else {

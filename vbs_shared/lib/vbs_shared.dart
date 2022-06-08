@@ -102,6 +102,84 @@ class Kid {
   }
 }
 
+class KidCount {
+  int? here;
+  int? kids;
+
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'here': here,
+      'groupID': kids,
+    };
+  }
+
+  static KidCount fromJSON(String json) {
+    var obj = jsonDecode(json);
+    return fromJSONObject(obj);
+  }
+
+  static KidCount fromJSONObject(Map<String,dynamic> obj) {
+    var kidCount = KidCount();
+    kidCount.here = obj["here"];
+    kidCount.kids = obj["kids"];
+    return kidCount;
+  }
+
+  static List<KidCount> fromJSONList(String json) {
+    List<KidCount> kidCounts = [];
+    List<dynamic> objs = jsonDecode(json);
+    for(var obj in objs) {
+      var kidCount = fromJSONObject(obj);
+      kidCounts.add(kidCount);
+    }
+    return kidCounts;
+  }
+}
+
+class UserInfo {
+  String? userName;
+  int? leaderID;
+  String? admin;
+  int? groupID;
+  String? groupName;
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'userName': userName,
+      'leaderID': leaderID,
+      'admin': admin,
+      'groupID': groupID,
+      'groupName': groupName,
+    };
+  }
+
+  static UserInfo fromJSON(String json) {
+    var obj = jsonDecode(json);
+    return fromJSONObject(obj);
+  }
+
+  static UserInfo fromJSONObject(Map<String,dynamic> obj) {
+    var userInfo = UserInfo();
+    userInfo.groupID = obj["groupID"];
+    userInfo.leaderID = obj["leaderID"];
+    userInfo.admin = obj["admin"];
+    userInfo.userName = obj["userName"];
+    userInfo.groupName = obj["groupName"];
+    return userInfo;
+  }
+
+  static List<UserInfo> fromJSONList(String json) {
+    List<UserInfo> data = [];
+    List<dynamic> objs = jsonDecode(json);
+    for(var obj in objs) {
+      var fact = fromJSONObject(obj);
+      data.add(fact);
+    }
+    return data;
+  }
+}
+
 class GroupData {
   Group? group;
   List<Kid> kids = [];

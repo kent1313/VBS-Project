@@ -17,6 +17,8 @@ class API {
   String hostName = "digitaleagle.net";
   String port = "443";
   String prefix = "lbcvbs";
+  String userName = '';
+  String password = '';
 
   config() async {
     if (kIsWeb) {
@@ -168,6 +170,26 @@ class API {
         body: jsonEncode(group.toJSON())
     );
   }
+  Future<UserInfo> getUserInfo(context) async {
+    var response = await sendMessage(
+      context: context,
+      method: 'get',
+      path: 'userInfo',
+    );
+    //var kids = GroupData.fromJSONObject(jsonDecode(response));
+    var userData = UserInfo.fromJSONObject(jsonDecode(response));
+    return userData;
+  }
+  Future<KidCount> kidCount(context, String today) async {
+    var response = await sendMessage(
+      context: context,
+      method: 'get',
+      path: 'kidCount/$today',
+    );
+    //var kids = GroupData.fromJSONObject(jsonDecode(response));
+    var kidCount = KidCount.fromJSONObject(jsonDecode(response));
+    return kidCount;
+  }
   Future<FamilyResult> loadFamily(context, int familyID) async {
     var response = await sendMessage(context: context, path: "getFamily/$familyID");
     var data = jsonDecode(response);
@@ -179,6 +201,7 @@ class API {
     }
     return result;
   }
+
   Future saveKid(context, Family family, List<Kid> familyMembers) async {
     List<Map<String, dynamic>> list = [];
     for(var member in familyMembers) {

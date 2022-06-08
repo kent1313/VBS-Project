@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 import 'package:side_navigation/side_navigation.dart';
+import 'kidData.dart';
+import 'kids.dart';
 
 class homePage extends StatefulWidget {
   const homePage({Key? key, required this.title}) : super(key: key);
@@ -184,16 +186,94 @@ class _MainContent extends State<MainContent> {
     if(api.admin == 'full') {
       userType = 'an administrator';
     }
-    return api.isLoggedIn ? Container(
-      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-      child: Align(
-        alignment: Alignment.center,
-        child: Column(
-          children: [
-            Text('You are currently logged in $userType', style: const TextStyle(fontSize: 25),),
-          ],
-        ),
-      ),
+
+    //String userName = api.userName.substring(0,1).toUpperCase() + api.userName.substring(1,api.userName.length);
+    String userName = api.userName;
+    return api.isLoggedIn ? Align(
+      alignment: Alignment.center,
+      child: api.admin == 'none' ? FutureBuilder<ScreenData> (
+          future: loadGroupData(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              //print(loadGroups());
+              return Column(
+                children: [
+                  Text(
+                    'Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}',
+                    style: const TextStyle(fontSize: 25),
+                  ),
+                  SizedBox(height: 10,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Group ${snapshot.data!.groupData.group!.groupName}', style: const TextStyle(fontSize: 25),),
+                      const Text('  Quick Access', style: TextStyle(fontSize: 23, fontStyle: FontStyle.italic,),),
+                    ],
+                  ),
+                  Flexible(
+                    child: ListView.builder(
+                        itemBuilder: (_, index) {
+                          var attendance = snapshot.data!.groupData.attendance[index];
+                          var kidFirstNames = attendance.kid!.firstName;
+                          var kidLastNames = attendance.kid!.lastName;
+                          bool here = attendance.here ?? false;
+                          return ListTile(
+                            leading: Icon(Icons.account_circle),
+                            onTap: () {
+                              var parm = KidDataParameter(attendance: attendance);
+                              Navigator.pushNamed(context, '/kidData', arguments: parm,
+                              ).then((value) => setState(() {}));
+                            },
+                            title: Text(kidFirstNames.toString()),
+                            subtitle: Text(kidLastNames.toString()),
+                            trailing: here ? Icon(Icons.check): Icon(Icons.close),
+                          );
+                        },
+                        itemCount: snapshot.data!.groupData.attendance.length
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              if (snapshot.hasError) {
+                print('Error: ${snapshot.error}');
+                return Column(
+                  children: [
+                    Icon(Icons.error_outline,
+                      color: Colors.red,
+                      size: 60,),
+                    Text("Error: ${snapshot.error}")
+                  ],
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            }
+          }
+      ):
+      Column(
+        children: [
+          Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
+          /*
+          FutureBuilder(
+            future: api.kidCount(context, Date.today().makeString()),
+              builder: (context, snapshot) {
+              if(snapshot.hasData) {
+                return Column(
+                  children: [
+                    Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
+                    Text('There are ${snapshot.data.}'),
+                  ],
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
+          )
+
+           */
+        ],
+      )
     ):
     Container(
       padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
@@ -235,4 +315,17 @@ class _MainContent extends State<MainContent> {
   void listener() {
     setState((){});
   }
+
+  Future<ScreenData> loadGroupData() async {
+    var userInfo = await api.getUserInfo(context);
+    var groupData = await api.loadKids(userInfo.groupID!, context, Date.today());
+    return ScreenData(userInfo, groupData);
+  }
+}
+
+class ScreenData {
+  UserInfo userInfo;
+  GroupData groupData;
+
+  ScreenData(this.userInfo, this.groupData);
 }

@@ -392,6 +392,23 @@ void main() async {
     conn.close();
     return Response.ok(jsonEncode(data));
   });
+  app.get('${config.prefix}/kidCount/<today>', (Request request, String today) async {
+    final conn = await config.connectToDatabase();
+
+    print('date: $today');
+    var getKidCount = await conn.execute('select count(*) from tblKid');
+    int kids = getKidCount.rows.first.typedAssoc()["count(*)"];
+    var getAttendanceCount = await conn.execute("select count(*) from tblAttendance "
+        "where today = :today", {"today": today});
+    int here = getAttendanceCount.rows.first.typedAssoc()['count(*)'];
+
+    KidCount kidCount = KidCount();
+    kidCount.here = here;
+    kidCount.kids = kids;
+
+    conn.close();
+    return Response.ok(jsonEncode(kidCount.toJSON()));
+  });
   app.post('${config.prefix}/addKid', (Request request) async {
     try {
       final body = await request.readAsString();
@@ -494,6 +511,50 @@ void main() async {
       print("  Stack: $stacktrace");
       return Response.internalServerError(body: jsonEncode(data));
     }
+  });
+
+  app.get('${config.prefix}/userInfo', (Request request) async {
+    final conn = await config.connectToDatabase();
+    String username = (request.context["payload"]! as ContextPayload).user;
+
+    var getUserData = await conn.execute("select * from tblUser where username = :userName",
+        {'userName': username});
+
+    var data = []; //List of five factors in constant order: String userName, int leaderID, String admin, int groupID, String groupName
+
+    for (final row in getUserData.rows) {
+      int leaderID = row.typedAssoc()['leaderID'];
+      String admin = row.typedAssoc()['systemAdmin'];
+      data.add(username);
+      data.add(leaderID);
+      data.add(admin);
+    }
+
+    int groupID = -1;
+    String groupName = '';
+    if(data[1] > 0) {
+      var getGroupID = await conn.execute(
+          "select * from tblLeader where leaderID = :leaderID;",
+          {'leaderID': data[1]});
+      groupID = getGroupID.rows.first.typedAssoc()['groupID'];
+      var getGroupName = await conn.execute(
+          "select * from tblGroup where groupID = :groupID;",
+          {'groupID': groupID});
+      groupName = getGroupName.rows.first.typedAssoc()['groupName'];
+    }
+    data.add(groupID);
+    data.add(groupName);
+
+    UserInfo userInfo = UserInfo();
+    userInfo.userName = data[0];
+    userInfo.leaderID = data[1];
+    userInfo.admin = data[2];
+    userInfo.groupID = data[3];
+    userInfo.groupName = data[4];
+
+    print('output: ${userInfo.toJSON()}');
+    conn.close();
+    return Response.ok(jsonEncode(userInfo.toJSON()));
   });
 
   app.post('${config.prefix}/addGroup', (Request request) async {
