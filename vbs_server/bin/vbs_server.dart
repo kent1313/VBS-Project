@@ -530,6 +530,7 @@ void main() async {
       data.add(admin);
     }
 
+    print('LeaderID = ${data[1]}');
     int groupID = -1;
     String groupName = '';
     if(data[1] > 0) {

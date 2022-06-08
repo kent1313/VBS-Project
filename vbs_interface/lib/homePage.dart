@@ -199,7 +199,7 @@ class _MainContent extends State<MainContent> {
               return Column(
                 children: [
                   Text(
-                    'Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}',
+                    'Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}!',
                     style: const TextStyle(fontSize: 25),
                   ),
                   SizedBox(height: 10,),
@@ -251,15 +251,15 @@ class _MainContent extends State<MainContent> {
             }
           }
       ):
-      FutureBuilder<KidCount>(
+      FutureBuilder<AdminData>(
         future: loadKidCount(),
           builder: (context, snapshot) {
           if(snapshot.hasData) {
             return Column(
               children: [
-                Text('Welcome! $userName', style: const TextStyle(fontSize: 25),),
+                Text('Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}!', style: const TextStyle(fontSize: 25),),
                 const SizedBox(height: 10,),
-                Text('There are ${snapshot.data!.here} out of ${snapshot.data!.kids} kids here today', style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic,),),
+                Text('There are ${snapshot.data!.kidCount.here} out of ${snapshot.data!.kidCount.kids} kids here today', style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic,),),
               ],
             );
           } else {
@@ -315,9 +315,10 @@ class _MainContent extends State<MainContent> {
     return ScreenData(userInfo, groupData);
   }
 
-  Future<KidCount> loadKidCount() async {
+  Future<AdminData> loadKidCount() async {
     var kidCount = await api.kidCount(context, Date.today().makeString());
-    return kidCount;
+    var userInfo = await api.getUserInfo(context);
+    return AdminData(kidCount, userInfo);
   }
 }
 
@@ -326,4 +327,11 @@ class ScreenData {
   GroupData groupData;
 
   ScreenData(this.userInfo, this.groupData);
+}
+
+class AdminData {
+  KidCount kidCount;
+  UserInfo userInfo;
+
+  AdminData(this.kidCount, this.userInfo);
 }
