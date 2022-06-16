@@ -46,6 +46,8 @@ void main() async {
 
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
+    print('OrganizationID = $organizationID');
 
     var now = DateTime.now();
     var today = "${now.year}-${now.month}-${now.day}";

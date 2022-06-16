@@ -1,10 +1,8 @@
 // from https://itnext.io/authentication-with-jwt-in-dart-6fbc70130806
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:jaguar_jwt/jaguar_jwt.dart';
 import 'package:shelf/shelf.dart';
-
 import 'config.dart';
 
 class AuthProvider {
@@ -56,6 +54,7 @@ class AuthProvider {
       print(jsonEncode(loginInfo));
       var user = loginInfo["userName"];
       var password = loginInfo["password"];
+      var organization = loginInfo["organization"];
       var conn = await config.connectToDatabase();
 
       var result = await conn.execute(
@@ -75,6 +74,7 @@ class AuthProvider {
       //  Also, data shouldn't be a List!!
       for(var row in result.rows) {
         String admin = row.typedAssoc()['systemAdmin'];
+        int organizationID = row.typedAssoc()['organizationID'];
         if(admin == 'Y') {
           data.add('full');
         } else {
@@ -84,13 +84,14 @@ class AuthProvider {
             data.add('some');
           }
         }
+        data.add(organizationID.toString());
       }
 
       JwtClaim claim = JwtClaim(
         subject: user,
         issuer: config.jwtIssuer,
         audience: [config.jwtAudience],
-        payload: {"admin": data[0].toString()}
+        payload: {"admin": data[0].toString(), 'organizationID': int.parse(data[1])}
       );
       String token = issueJwtHS256(claim, config.jwtSecret);
 
@@ -125,6 +126,7 @@ class AuthProvider {
       var payload = (request.context["payload"]! as ContextPayload);
       payload.user = claim.subject!;
       payload.admin = claim.payload["admin"];
+      payload.organizationID = claim.payload['organizationID'];
 
       return null;
 
@@ -140,4 +142,5 @@ class AuthProvider {
 class ContextPayload {
   String user = "";
   String admin = "";
+  int organizationID = 0;
 }
