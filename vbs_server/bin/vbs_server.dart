@@ -97,7 +97,7 @@ void main() async {
     var results = await conn.execute('select k.*, g.groupName '
         'from tblKid k join tblGroup g on k.groupID = g.groupID '
         'where (k.organizationID = :orgID or :orgID = -1) '
-        'and (g.organizationID = :orgID or :orgID = -1',
+        'and (g.organizationID = :orgID or :orgID = -1)',
     {"orgID": organizationID});
     var data = [];
     for (final row in results.rows) {
