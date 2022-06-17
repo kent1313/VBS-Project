@@ -540,10 +540,14 @@ void main() async {
           "select * from tblLeader where leaderID = :leaderID;",
           {'leaderID': data[1]});
       groupID = getGroupID.rows.first.typedAssoc()['groupID'];
-      var getGroupName = await conn.execute(
-          "select * from tblGroup where groupID = :groupID;",
-          {'groupID': groupID});
-      groupName = getGroupName.rows.first.typedAssoc()['groupName'];
+      if(groupID > 0) {
+        var getGroupName = await conn.execute(
+            "select * from tblGroup where groupID = :groupID;",
+            {'groupID': groupID});
+        if(getGroupName.numOfRows > 0) {
+          groupName = getGroupName.rows.first.typedAssoc()['groupName'];
+        }
+      }
     }
     data.add(groupID);
     data.add(groupName);
