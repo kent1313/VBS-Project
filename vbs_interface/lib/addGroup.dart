@@ -59,11 +59,6 @@ class _AddGroupState extends State<AddGroup> {
                         labelText: 'Group Name',
                       ),
                       controller: groupName,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(
-                            r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                            r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                      ],
                       onChanged: (newValue) {
                         badInput = false;
                         setState(() {});
