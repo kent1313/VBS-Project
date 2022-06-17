@@ -44,6 +44,9 @@ void main() async {
   print("Using prefix: ${config.prefix}");
   print("Database: ${config.databaseName}");
 
+  // ---------------------------
+  //  /groupNames
+  // ---------------------------
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
     int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
@@ -51,9 +54,18 @@ void main() async {
 
     var now = DateTime.now();
     var today = "${now.year}-${now.month}-${now.day}";
-    var herePart = "(select count(*) from tblAttendance a, tblKid k where a.today = :today and a.kidID = k.kidID and k.groupID = g.groupID)";
+    var herePart = "(select count(*) from tblAttendance a, tblKid k "
+        "where a.today = :today and a.kidID = k.kidID "
+        "and k.groupID = g.groupID "
+        "and (a.organizationID = :orgID or :orgID = -1) "
+        "and (k.organizationID = :orgID or :orgID = -1))";
 
-    var results = await conn.execute('select *, (select count(*) from tblKid k where k.groupID = g.groupID) cnt, $herePart here from tblGroup g', {"today": today});
+    var results = await conn.execute('select *, '
+        '(select count(*) from tblKid k where k.groupID = g.groupID'
+        ' and (k.organizationID = :orgID or :orgID = -1)) cnt, '
+        '$herePart here from tblGroup g '
+        'where (g.organizationID = :orgID or :orgID = -1)',
+        {"today": today, "orgID": organizationID});
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -75,11 +87,18 @@ void main() async {
         );
   });
 
+  // ---------------------------
+  //  /kidNames
+  // ---------------------------
   app.get('${config.prefix}/kidNames', (Request request) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var results = await conn.execute('select k.*, g.groupName '
-        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
+        'from tblKid k join tblGroup g on k.groupID = g.groupID '
+        'where (k.organizationID = :orgID or :orgID = -1) '
+        'and (g.organizationID = :orgID or :orgID = -1',
+    {"orgID": organizationID});
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -104,11 +123,18 @@ void main() async {
         );
   });
 
+  // ---------------------------
+  //  /kidSearch/<search>
+  // ---------------------------
   app.get('${config.prefix}/kidSearch/<search>', (Request request, String search) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var results = await conn.execute('select k.*, g.groupName '
-        'from tblKid k join tblGroup g on k.groupID = g.groupID;');
+        'from tblKid k join tblGroup g on k.groupID = g.groupID'
+        'and (k.organizationID = :orgID or :orgID = -1) '
+        'and (g.organizationID = :orgID or :ordID = -1)',
+    {"orgID": organizationID});
     var data = [];
     String first = '';
     String last = '';
@@ -144,11 +170,18 @@ void main() async {
     );
   });
 
+  // ---------------------------
+  //  /getGroupName/<groupID>
+  // ---------------------------
   app.get('${config.prefix}/getGroupName/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
-    var results = await conn.execute('select * from tblGroup where groupID = :groupID;',
-        {'groupID': int.parse(groupID)});
+    var results = await conn.execute('select * from tblGroup '
+        'where groupID = :groupID '
+        'and (organizationID = :orgID or :orgID = -1)',
+        {'groupID': int.parse(groupID),
+        "orgID": organizationID});
     var data = [];
     if(groupID == 0) {
       for (final row in results.rows) {
@@ -182,12 +215,18 @@ void main() async {
     );
   });
 
+  // ---------------------------
+  //  /kidNames/<groupID>
+  // ---------------------------
   app.get('${config.prefix}/kidNames/<groupID>', (Request request, String groupID) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var results = await conn.execute(
-        'select * from tblKid where groupID = :groupID;',
-        {'groupID': int.parse(groupID)});
+        'select * from tblKid where groupID = :groupID '
+            '(organizationID = :orgID or :orgID = -1)',
+        {'groupID': int.parse(groupID),
+        'orgID': organizationID});
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -210,8 +249,12 @@ void main() async {
         );
   });
 
+  // ---------------------------
+  //  /myKids
+  // ---------------------------
   app.get('${config.prefix}/myKids', (Request request) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     String user = (request.context["payload"]! as ContextPayload).user;
     var results = await conn.execute("select leaderID from tblUser where userName = :user", {"user": user});
@@ -220,8 +263,9 @@ void main() async {
     int groupID = results.rows.first.typedAssoc()["groupID"];
 
     results = await conn.execute(
-        'select * from tblKid where groupID = :groupID;',
-        {'groupID': groupID});
+        'select * from tblKid where groupID = :groupID '
+            'and (organizationID = :orgID or :orgID = -1)',
+        {'groupID': groupID, "orgID": organizationID});
     var data = [];
     for (final row in results.rows) {
       // print(row.colAt(0));
@@ -245,13 +289,18 @@ void main() async {
     );
   });
 
+  // ---------------------------
+  //  /group/<groupID>/<date>
+  // ---------------------------
   app.get('${config.prefix}/group/<groupID>/<date>',
       (Request request, String groupID, date) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var results1 = await conn.execute(
-        "select * from tblGroup where groupID = :groupID;",
-        {'groupID': int.parse(groupID)});
+        "select * from tblGroup where groupID = :groupID "
+            "and (organizationID = :orgID or :orgID = -1)",
+        {'groupID': int.parse(groupID), "orgID": organizationID});
     var data = GroupData();
     if (results1.rows.length > 0) {
       var row = results1.rows.elementAt(0);
@@ -266,8 +315,9 @@ void main() async {
         "case when a.today is null then 'N' else "
         "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID "
         "from tblKid k left outer join tblAttendance a on k.kidID = a.kidID "
-        "and a.today = :today where k.groupID = :groupID",
-        {'groupID': int.parse(groupID), 'today': date});
+        "and a.today = :today where k.groupID = :groupID "
+            "and (k.organizationID = :orgID or :orgID = -1)",
+        {'groupID': int.parse(groupID), 'today': date, 'orgID': organizationID});
     for (final row in results2.rows) {
       var attend = Attendance();
       attend.kid = Kid();
@@ -303,16 +353,21 @@ void main() async {
     );
   });
 
+  // ---------------------------
+  //  /updateAttendance
+  // ---------------------------
   app.post('${config.prefix}/updateAttendance', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var attendance = Attendance.fromJSONObject(jsonDecode(body));
 
     if(attendance.here == false) {
       var action = await conn.execute(
-        "delete from tblAttendance where kidID = :kidID and today = :today",
-          {'kidID': attendance.kidID, 'today': attendance.today});
+        "delete from tblAttendance where kidID = :kidID and today = :today "
+            "and (organizationID = :orgID or :orgID = -1)",
+          {'kidID': attendance.kidID, 'today': attendance.today, "orgID": organizationID});
     } else {
       String verse;
       if(attendance.verse == true) {
@@ -328,40 +383,51 @@ void main() async {
       }
 
       var execution = await conn.execute("select count(*) rowCount from tblAttendance"
-          " where kidID = :kidID and today = :today;",
-          {'kidID': attendance.kidID, 'today': attendance.today});
+          " where kidID = :kidID and today = :today"
+          " and (organizationID = :orgID or :orgID = -1)",
+          {'kidID': attendance.kidID, 'today': attendance.today, "orgID": organizationID});
       print('DB-response: ${execution.rows.first.typedAssoc()["rowCount"]}');
       if(execution.rows.first.typedAssoc()["rowCount"] == 0) {
         var action = await conn.execute(
-            "insert into tblAttendance (today, kidID, verse, visitors, leaderID)"
-                "values (:today, :kidID, :verse, :visitors, 2);",
+            "insert into tblAttendance (today, kidID, verse, visitors, leaderID, organizationID)"
+                "values (:today, :kidID, :verse, :visitors, 2, :orgID);",
             {
               'kidID': attendance.kidID,
               'today': attendance.today,
               'verse': verse,
               'visitors': visitors,
+              'orgID': organizationID,
             });
         print("action = $action");
       } else {
         var action1 = await conn.execute("update tblAttendance set verse = :verse"
-            " where kidID = :kidID and today = :today;",
-            {'kidID': attendance.kidID, 'today': attendance.today, 'verse': verse});
+            " where kidID = :kidID and today = :today "
+            " and (organizationID = :orgID or :orgID = -1)",
+            {'kidID': attendance.kidID, 'today': attendance.today, 'verse': verse, 'orgID': organizationID});
         var action2 = await conn.execute("update tblAttendance set visitors = :visitors"
-            " where kidID = :kidID and today = :today;",
-            {'kidID': attendance.kidID, 'today': attendance.today, 'visitors': visitors});
+            " where kidID = :kidID and today = :today "
+            " and (organizationID = :orgID or :orgID = -1)",
+            {'kidID': attendance.kidID, 'today': attendance.today, 'visitors': visitors, 'orgID': organizationID});
       }
     }
     conn.close();
     return Response.ok('hello-world');
   });
 
+  // ---------------------------
+  //  /getFamily/<familyID>
+  // ---------------------------
   app.get('${config.prefix}/getFamily/<familyID>', (Request request, String familyIDString) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     int familyID = int.parse(familyIDString);
 
-    IResultSet result = await conn.execute("select * from tblFamily where familyID = :familyID", {"familyID": familyID});
+    IResultSet result = await conn.execute("select * from tblFamily "
+        "where familyID = :familyID "
+        "and (organiationID = :orgID or :orgID = -1)",
+        {"familyID": familyID, 'orgID': organizationID});
     Family family = Family();
     if(result.numOfRows > 0) {
       var row = result.rows.first.typedAssoc();
@@ -372,7 +438,10 @@ void main() async {
       family.email = row["email"];
       family.address = row["address"];
     }
-    result = await conn.execute("select * from tblKid where familyID = :familyID", {"familyID": familyID});
+    result = await conn.execute("select * from tblKid "
+        "where familyID = :familyID "
+        "and (organizationID = :orgID or :orgID = -1)",
+        {"familyID": familyID, 'orgID': organizationID});
     List<Map<String, dynamic>> members = [];
     for(var row in result.rows) {
       Kid kid = Kid();
@@ -394,14 +463,20 @@ void main() async {
     conn.close();
     return Response.ok(jsonEncode(data));
   });
+
+  // ---------------------------
+  //  /kidCount/<today>
+  // ---------------------------
   app.get('${config.prefix}/kidCount/<today>', (Request request, String today) async {
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     print('date: $today');
-    var getKidCount = await conn.execute('select count(*) from tblKid');
+    var getKidCount = await conn.execute('select count(*) from tblKid where (organizationID = :orgID or :orgID = -1)', {'orgID': organizationID});
     int kids = getKidCount.rows.first.typedAssoc()["count(*)"];
     var getAttendanceCount = await conn.execute("select count(*) from tblAttendance "
-        "where today = :today", {"today": today});
+        "where today = :today "
+        "and (organizationID = :orgID or :orgID = -1)", {"today": today, 'orgID': organizationID});
     int here = getAttendanceCount.rows.first.typedAssoc()['count(*)'];
 
     KidCount kidCount = KidCount();
@@ -411,10 +486,15 @@ void main() async {
     conn.close();
     return Response.ok(jsonEncode(kidCount.toJSON()));
   });
+
+  // ---------------------------
+  //  /addKid
+  // ---------------------------
   app.post('${config.prefix}/addKid', (Request request) async {
     try {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
+      int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
       var data = jsonDecode(body);
       List<Kid> kids = [];
@@ -436,20 +516,28 @@ void main() async {
       // insert / update the family
       if (family.id <= 0) {
         IResultSet result = await conn.execute(
-            "insert into tblFamily (familyName, parentName, address, phone, email)"
-                "values (:familyName, :parentName, :address, :phone, :email);",
+            "insert into tblFamily (familyName, parentName, address, phone, email, organizationID)"
+                "values (:familyName, :parentName, :address, :phone, :email, :orgID);",
             {
               'familyName': family.familyName,
               "parentName": family.parentName,
               'address': family.address,
               'phone': family.phone,
               'email': family.email,
+              "orgID": organizationID
             }
         );
         family.id = result.lastInsertID.toInt();
       } else {
         IResultSet result = await conn.execute(
-            "update tblFamily set familyName = :familyName, parentName = :parentName, address = :address, phone = :phone, email = :email where familyID = :familyID",
+            "update tblFamily "
+                "set familyName = :familyName, "
+                "parentName = :parentName, "
+                "address = :address, "
+                "phone = :phone, "
+                "email = :email "
+                "where familyID = :familyID "
+                "and (organizationID = :orgID or :orgID = -1)",
             {
               'familyID': family.id,
               'familyName': family.familyName,
@@ -457,6 +545,7 @@ void main() async {
               'address': family.address,
               'phone': family.phone,
               'email': family.email,
+              'orgID': organizationID,
             }
         );
       }
@@ -465,8 +554,8 @@ void main() async {
         // insert / update
         if (kid.kidID == null || kid.kidID! <= 0) {
           IResultSet result = await conn.execute(
-              "insert into tblKid (familyID, grade, firstName, lastName, groupID, age)"
-                  "values (:familyID, :grade, :firstName, :lastName, :groupID, :age);",
+              "insert into tblKid (familyID, grade, firstName, lastName, groupID, age, organizationID)"
+                  "values (:familyID, :grade, :firstName, :lastName, :groupID, :age, :orgID);",
               {
                 'familyID': family.id,
                 'grade': kid.grade,
@@ -474,12 +563,16 @@ void main() async {
                 'lastName': kid.lastName,
                 'groupID': kid.groupID,
                 'age': kid.age,
+                'orgID': organizationID
               }
           );
           kid.kidID = result.lastInsertID.toInt();
         } else {
           IResultSet result = await conn.execute(
-              "update tblKid set familyID = :familyID, firstName = :firstName, lastName = :lastName, groupID = :groupID, grade = :grade, age = :age where kidID = :kidID",
+              "update tblKid set familyID = :familyID, firstName = :firstName, "
+                  "lastName = :lastName, groupID = :groupID, grade = :grade, age = :age "
+                  "where kidID = :kidID "
+                  "and (organizationID = :orgID or :orgID = -1)",
               {
                 'familyID': family.id,
                 'grade': kid.grade,
@@ -488,6 +581,7 @@ void main() async {
                 'groupID': kid.groupID,
                 'age': kid.age,
                 'kidID': kid.kidID,
+                'orgID': organizationID,
               }
           );
         }
@@ -515,9 +609,13 @@ void main() async {
     }
   });
 
+  // ---------------------------
+  //  /userInfo
+  // ---------------------------
   app.get('${config.prefix}/userInfo', (Request request) async {
     final conn = await config.connectToDatabase();
     String username = (request.context["payload"]! as ContextPayload).user;
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var getUserData = await conn.execute("select * from tblUser where username = :userName",
         {'userName': username});
@@ -542,7 +640,7 @@ void main() async {
       groupID = getGroupID.rows.first.typedAssoc()['groupID'];
       if(groupID > 0) {
         var getGroupName = await conn.execute(
-            "select * from tblGroup where groupID = :groupID;",
+            "select * from tblGroup where groupID = :groupID",
             {'groupID': groupID});
         if(getGroupName.numOfRows > 0) {
           groupName = getGroupName.rows.first.typedAssoc()['groupName'];
@@ -564,15 +662,23 @@ void main() async {
     return Response.ok(jsonEncode(userInfo.toJSON()));
   });
 
+  // ---------------------------
+  //  /addGroup
+  // ---------------------------
   app.post('${config.prefix}/addGroup', (Request request) async {
     final body = await request.readAsString();
     final conn = await config.connectToDatabase();
+    int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
 
     var group = Group.fromJSONObject(jsonDecode(body));
 
-      var execution = await conn.execute("insert into tblGroup (groupName, mainLeaderID)"
-          "values (:groupName, :mainLeaderID)",
-          {'groupName': group.groupName, 'mainLeaderID': group.mainLeaderID});
+      var execution = await conn.execute("insert into tblGroup (groupName, mainLeaderID, organizationID)"
+          "values (:groupName, :mainLeaderID, :orgID)",
+          {
+            'groupName': group.groupName,
+            'mainLeaderID': group.mainLeaderID,
+            'orgID': organizationID,
+          });
 
     conn.close();
     return Response.ok('hello-world');
