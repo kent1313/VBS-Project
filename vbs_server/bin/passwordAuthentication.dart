@@ -49,9 +49,7 @@ class AuthProvider {
   static FutureOr<Response> authenticate(Request request) async {
     try {
       final body = await request.readAsString();
-      print(body);
       var loginInfo = jsonDecode(body);
-      print(jsonEncode(loginInfo));
       var user = loginInfo["userName"];
       var password = loginInfo["password"];
       var organization = loginInfo["organization"];
