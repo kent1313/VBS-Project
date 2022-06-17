@@ -30,11 +30,14 @@ class _GroupsState extends State<Groups> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/addGroup').then((value) => setState(() {}));
-          },
-          child: const Icon(Icons.group_add),
+        floatingActionButton: Visibility(
+          visible: api.admin == 'full',
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/addGroup').then((value) => setState(() {}));
+            },
+            child: const Icon(Icons.group_add),
+          ),
         ),
 
         appBar: AppBar(
