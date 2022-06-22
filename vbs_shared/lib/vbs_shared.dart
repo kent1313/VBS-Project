@@ -213,6 +213,7 @@ class Attendance {
   int? kidID;
   bool? verse;
   bool? here;
+  bool? bible;
   int? visitors;
 
   Object toJSON() {
@@ -222,6 +223,7 @@ class Attendance {
       'kidID': kidID,
       'verse': verse,
       'here': here,
+      'bible': bible,
       'visitors': visitors,
     };
     return obj;
@@ -233,6 +235,7 @@ class Attendance {
     data.today = json['today'];
     data.here = json['here'];
     data.verse = json['verse'];
+    data.bible = json['bible'];
     data.visitors = json['visitors'];
     if(json['kid'] != null) {
       data.kid = Kid.fromJSONObject(json['kid']);

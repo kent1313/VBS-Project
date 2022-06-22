@@ -50,7 +50,6 @@ void main() async {
   app.get('${config.prefix}/groupNames', (Request request) async {
     final conn = await config.connectToDatabase();
     int organizationID = (request.context["payload"]! as ContextPayload).organizationID;
-    print('OrganizationID = $organizationID');
 
     var now = DateTime.now();
     var today = "${now.year}-${now.month}-${now.day}";
@@ -313,7 +312,7 @@ void main() async {
         ""
         "select k.kidID, k.familyID, k.grade, k.firstName, k.lastName, k.groupID, k.age, "
         "case when a.today is null then 'N' else "
-        "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID "
+        "'Y' end as here,a.today,a.verse, a.visitors, a.leaderID, bible "
         "from tblKid k left outer join tblAttendance a on k.kidID = a.kidID "
         "and a.today = :today where k.groupID = :groupID "
             "and (k.organizationID = :orgID or :orgID = -1)",
@@ -336,6 +335,11 @@ void main() async {
         attend.verse = true;
       } else {
         attend.verse = false;
+      }
+      if (row.typedAssoc()["bible"] == "Y") {
+        attend.bible = true;
+      } else {
+        attend.bible = false;
       }
       if (row.typedAssoc()['here'] == 'N') {
         attend.here = false;
@@ -370,10 +374,16 @@ void main() async {
           {'kidID': attendance.kidID, 'today': attendance.today, "orgID": organizationID});
     } else {
       String verse;
+      String bible;
       if(attendance.verse == true) {
         verse = 'Y';
       } else {
         verse = 'N';
+      }
+      if(attendance.bible == true) {
+        bible = 'Y';
+      } else {
+        bible = 'N';
       }
       int? visitors;
       if(attendance.visitors == null) {
@@ -389,14 +399,15 @@ void main() async {
       print('DB-response: ${execution.rows.first.typedAssoc()["rowCount"]}');
       if(execution.rows.first.typedAssoc()["rowCount"] == 0) {
         var action = await conn.execute(
-            "insert into tblAttendance (today, kidID, verse, visitors, leaderID, organizationID)"
-                "values (:today, :kidID, :verse, :visitors, 2, :orgID);",
+            "insert into tblAttendance (today, kidID, verse, visitors, leaderID, organizationID, bible)"
+                "values (:today, :kidID, :verse, :visitors, 2, :orgID, :bible);",
             {
               'kidID': attendance.kidID,
               'today': attendance.today,
               'verse': verse,
               'visitors': visitors,
               'orgID': organizationID,
+              'bible': bible,
             });
         print("action = $action");
       } else {
@@ -408,6 +419,10 @@ void main() async {
             " where kidID = :kidID and today = :today "
             " and (organizationID = :orgID or :orgID = -1)",
             {'kidID': attendance.kidID, 'today': attendance.today, 'visitors': visitors, 'orgID': organizationID});
+        var action3 = await conn.execute("update tblAttendance set bible = :bible"
+            " where kidID = :kidID and today = :today "
+            " and (organizationID = :orgID or :orgID = -1)",
+            {'kidID': attendance.kidID, 'today': attendance.today, 'bible': bible, 'orgID': organizationID});
       }
     }
     conn.close();

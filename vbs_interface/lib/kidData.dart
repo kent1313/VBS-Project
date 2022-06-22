@@ -24,7 +24,6 @@ class KidData extends StatefulWidget {
 }
 
 class _KidDataState extends State<KidData> {
-  bool isHere = false;
   Attendance? attendance;
   TextEditingController visitors = TextEditingController();
   dynamic today = DateTime.now();
@@ -61,10 +60,10 @@ class _KidDataState extends State<KidData> {
                       attendance!.here = value;
                       if(value == false) {
                         attendance!.verse = value;
+                        attendance!.bible = value;
                         visitors.text = '';
                       }
                       api.updateAttendance(context, attendance!);
-                      isHere = value!;
                     });
                   },
                 )
@@ -72,8 +71,17 @@ class _KidDataState extends State<KidData> {
               Container(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   child: CheckboxListTile(
+                    title: const Text('Bible', style: TextStyle(fontSize: 18),),
+                    secondary: const Icon(Icons.menu_book),
+                    value: attendance!.bible,
+                    onChanged: (attendance!.here ?? false) ? bibleChecked: null,
+                  )
+              ),
+              Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                  child: CheckboxListTile(
                     title: const Text('Verse', style: TextStyle(fontSize: 18),),
-                    secondary: const Icon(Icons.beenhere),
+                    secondary: const Icon(Icons.text_snippet),
                     value: attendance!.verse,
                     onChanged: (attendance!.here ?? false) ? verseChecked: null,
                   )
@@ -81,16 +89,16 @@ class _KidDataState extends State<KidData> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.fromLTRB(25, 0, 10, 0),
+                    padding: const EdgeInsets.fromLTRB(25, 0, 0, 0),
                       child: Icon(
-                        Icons.emoji_people, color: (isHere) ? Colors.black87: Colors.black38,
+                        Icons.emoji_people, color: (attendance!.here ?? false) ? Colors.black87: Colors.black38,
                       )
                   ),
                   Container(
                       padding: const EdgeInsets.fromLTRB(18, 0, 10, 0),
                       child: Text(
                         'Visitors', style: TextStyle(
-                          fontSize: 18, color: (isHere) ? Colors.black: Colors.black38
+                          fontSize: 18, color: (attendance!.here ?? false) ? Colors.black: Colors.black38
                       ),
                       )
                   ),
@@ -133,13 +141,22 @@ class _KidDataState extends State<KidData> {
   }
 
   void verseChecked(bool? verse) {
-    if (isHere == true) {
+    if (attendance!.here == true) {
       setState(() {
         //set "attendance.verse" to "verse"
         attendance!.verse = verse;
         api.updateAttendance(context, attendance!);
       });
-    } else {
+    }
+  }
+
+  void bibleChecked(bool? bible) {
+    if (attendance!.here == true) {
+      setState(() {
+        //set "attendance.verse" to "verse"
+        attendance!.bible = bible;
+        api.updateAttendance(context, attendance!);
+      });
     }
   }
 
