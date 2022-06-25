@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 
 class userConfiguration extends StatefulWidget {
@@ -101,10 +102,19 @@ class _userConfigurationState extends State<userConfiguration> {
 
   Future<Map<String, dynamic>> loadSearch() async {
     var data = <String, dynamic>{};
+    data["allLeaders"] = await api.getAllLeaders(context);
+    data["matches"] = [];
     if(search.text.isEmpty) {
-      data["allLeaders"] = await api.getAllLeaders(context);
+      // data["allLeaders"] = await api.getAllLeaders(context);
     } else {
       // return await api.loadSearchKids(context,search.text);
+      var searchText = search.text.toLowerCase();
+      for(var leader in data["allLeaders"]["leaders"]) {
+        var name = "${leader['firstName']} ${leader['lastName']}";
+        if(name.toLowerCase().contains(searchText)) {
+          data["matches"].add(UserLeaderMatch(name: name, leader: Leader.fromJSONObject(leader)));
+        }
+      }
     }
     return data;
   }
@@ -150,4 +160,12 @@ class LeaderByGroupCard extends StatelessWidget {
     );
   }
   
+}
+
+class UserLeaderMatch {
+  String name;
+  Leader? leader;
+  User? user;
+
+  UserLeaderMatch({required this.name, this.leader, this.user});
 }
