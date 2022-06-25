@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 
 class userConfiguration extends StatefulWidget {
@@ -38,8 +39,9 @@ class _userConfigurationState extends State<userConfiguration> {
         title: Text(widget.title),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/addKid',);
+        onPressed: () async {
+          List<Group> groups = await api.loadGroups(context);
+          Navigator.pushNamed(context, '/addUser', arguments: groups);
         },
         child: Icon(Icons.person_add),
       ),

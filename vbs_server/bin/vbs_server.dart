@@ -430,6 +430,37 @@ void main() async {
   });
 
   // ---------------------------
+  //  /addUser
+  // ---------------------------
+  app.post('${config.prefix}/addUser', (Request request) async {
+    final body = await request.readAsString();
+    final conn = await config.connectToDatabase();
+    var user = User.fromJSONObject(jsonDecode(body));
+    int orgID = (request.context["payload"]! as ContextPayload).organizationID;
+    String username = user.userName;
+    String password = user.password;
+    String admin = user.systemAdmin;
+    int leaderID = -1;
+    if(admin == 'N') {
+      //var addLeader = await conn.execute('insert into tblLeader');
+      //This is where you add the user into the leader table.
+    }
+    var addUser = await conn.execute(
+        "insert into tblUser (userName, password, leaderID, systemAdmin, organizationID)"
+            "values (:username, :password, :leaderID, :admin, :orgID);",
+        {
+          'username': username,
+          'password': password,
+          'leaderID': null,
+          'admin': admin,
+          'orgID': orgID
+        });
+
+    conn.close();
+    return Response.ok('hello-world');
+  });
+
+  // ---------------------------
   //  /getFamily/<familyID>
   // ---------------------------
   app.get('${config.prefix}/getFamily/<familyID>', (Request request, String familyIDString) async {
