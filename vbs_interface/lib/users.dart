@@ -39,8 +39,9 @@ class _userConfigurationState extends State<userConfiguration> {
         title: Text(widget.title),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/addKid',);
+        onPressed: () async {
+          List<Group> groups = await api.loadGroups(context);
+          Navigator.pushNamed(context, '/addUser', arguments: groups);
         },
         child: Icon(Icons.person_add),
       ),

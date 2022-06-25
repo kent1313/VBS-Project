@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vbs_interface/addUser.dart';
 import 'kids.dart';
 import 'groups.dart';
 import 'kidData.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         routes: {
           "/homePage": (context) => const homePage(title: 'VBS'),
           "/kids": (context) => const Kids(title: 'Kids'),
+          "/addUser": (context) => const AddUser(title: 'New User'),
           "/users": (context) => const userConfiguration(title: 'Users'),
           "/addGroup": (context) => const AddGroup(title: 'New Group'),
           "/kidData": (context) => const KidData(title: 'Check in'),

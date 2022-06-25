@@ -25,7 +25,7 @@ class _AddGroupState extends State<AddGroup> {
   TextEditingController groupName = TextEditingController();
   String message = '';
   bool badInput = false;
-  String mainLeader = 'Pick a Primary Leader';
+  //String mainLeader = 'Pick a Primary Leader';
 
   @override
   Widget build(BuildContext context) {
