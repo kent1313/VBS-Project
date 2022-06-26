@@ -15,7 +15,7 @@ class SetupRoutes {
      -------------------------------------
    */
   static addRoutes(Router app) {
-    app.post('${config.prefix}/updateUser', (Request request) async {
+    app.post('${config.prefix}/updateUser/<origUsername>', (Request request, String origUsername) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
       final payload = request.context["payload"]! as ContextPayload;
@@ -30,10 +30,15 @@ class SetupRoutes {
         user.organizationID = payload.organizationID;
       }
 
-      var action = await conn.execute(
-          "select count(*) count from tblUser where userName = :user",
-          {"user": user.userName});
-      if (action.rows.first.typedAssoc()["count"] == 0) {
+      int foundCount = 0;
+      IResultSet action;
+      if(origUsername.isNotEmpty) {
+        action = await conn.execute(
+            "select count(*) count from tblUser where userName = :user",
+            {"user": origUsername});
+        foundCount = action.rows.first.typedAssoc()["count"];
+      }
+      if (foundCount == 0) {
         action = await conn.execute(
             "insert into tblUser (userName, password, leaderID, systemAdmin, organizationID) values (:user, md5(:password), :leaderID, :systemAdmin, :orgID)",
             {
@@ -45,8 +50,9 @@ class SetupRoutes {
             });
       } else {
         action = await conn.execute(
-            "update tblUser set leaderID = :leaderID, systemAdmin = :systemAdmin, organizationID = :orgID where userName = :user",
+            "update tblUser set userName = :user, leaderID = :leaderID, systemAdmin = :systemAdmin, organizationID = :orgID where userName = :originalUser",
             {
+              "originalUser": origUsername,
               "user": user.userName,
               "leaderID": user.leaderID,
               "systemAdmin": user.systemAdmin,
@@ -144,6 +150,11 @@ class SetupRoutes {
       leader.lastName = row["lastName"];
       leader.phone = row["phone"];
       leader.groupID = row["groupID"];
+      
+      result = await conn.execute("select * from tblUser where leaderID = :leaderID", {"leaderID": leader.leaderID});
+      if(result.numOfRows > 0) {
+        leader.associatedUser = result.rows.first.typedAssoc()["userName"];
+      }
 
       conn.close();
       return Response.ok(jsonEncode(leader.toJSON()));

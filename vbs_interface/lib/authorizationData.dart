@@ -133,10 +133,10 @@ class API {
     return kids;
   }
 
-  Future<void> updateUser(context, User user) async {
+  Future<void> updateUser(context, String originalUser, User user) async {
     var response = await sendMessage(
       context: context,
-      path: "/updateUser",
+      path: "/updateUser/$originalUser",
       body: jsonEncode(user.toJSON()),
       method: "POST",
     );

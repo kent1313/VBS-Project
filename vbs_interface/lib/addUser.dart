@@ -36,6 +36,7 @@ class _AddUserState extends State<AddUser> {
   bool isUserLeaderLoaded = false;
   User? user;
   Leader? leader;
+  String originalUser = "";
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +351,7 @@ class _AddUserState extends State<AddUser> {
         // the updateLeader() will update the leaderID after inserting
         user!.leaderID = leader!.leaderID;
       }
-      await api.updateUser(context, user!);
+      await api.updateUser(context, originalUser, user!);
     }
   }
 
@@ -364,8 +365,13 @@ class _AddUserState extends State<AddUser> {
     if(!isUserLeaderLoaded && args.userID != null) {
       user = api.getUser(context, args.userID!);
     }
+    if(!isUserLeaderLoaded && (args.userID == null || args.userID!.isEmpty) && leader != null) {
+      if((await leader).associatedUser.isNotEmpty) {
+        user = api.getUser(context, (await leader).associatedUser);
+      }
+    }
 
-    if(leader != null) {
+      if(leader != null) {
       this.leader = await leader;
       firstName.text = this.leader!.firstName;
       lastName.text = this.leader!.lastName;
@@ -386,6 +392,7 @@ class _AddUserState extends State<AddUser> {
       if(this.user!.systemAdmin == "Y") {
         pickAdmin = "Administrator";
       }
+      originalUser = this.user!.userName;
     }
 
     isUserLeaderLoaded = true;
