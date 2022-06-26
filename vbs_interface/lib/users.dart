@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vbs_interface/addUser.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 import 'authorizationData.dart';
 
@@ -39,9 +42,8 @@ class _userConfigurationState extends State<userConfiguration> {
         title: Text(widget.title),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          List<Group> groups = await api.loadGroups(context);
-          Navigator.pushNamed(context, '/addUser', arguments: groups);
+        onPressed: () {
+          Navigator.pushNamed(context, '/addUser', arguments: UserScreenArgs()).then((value) => setState((){}));
         },
         child: Icon(Icons.person_add),
       ),
@@ -58,11 +60,6 @@ class _userConfigurationState extends State<userConfiguration> {
                     labelText: 'Search',
                     icon: Icon(Icons.search),
                   ),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(
-                        r'[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,'
-                        r'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z, ]'))
-                  ],
                 ),
               ),
               Flexible(
@@ -70,12 +67,34 @@ class _userConfigurationState extends State<userConfiguration> {
                     future: loadSearch(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        return SingleChildScrollView(
-                          child: Wrap(
-                            direction: Axis.horizontal,
-                            children: snapshot.data!["allLeaders"]["groups"].map<Widget>((group)=>LeaderByGroupCard(group)).toList() ,
-                          ),
-                        );
+                        if(search.text.isNotEmpty && snapshot.data!["matches"] != null) {
+                          List<UserLeaderMatch> matches = snapshot.data!["matches"];
+                          if(matches.isEmpty) {
+                            return Text("No Matches Found");
+                          } else {
+                            return ListView.builder(
+                              itemCount: matches.length,
+                                itemBuilder: (context, index) {
+                                var match = matches[index];
+                                  return ListTile(
+                                    title: Text(match.name),
+                                    onTap: () {
+                                      int? leaderID = match.leader == null ? null : match.leader!.leaderID;
+                                      String? userName = match.user == null ? null : match.user!.userName;
+                                      Navigator.pushNamed(context, '/addUser', arguments: UserScreenArgs(leaderID: leaderID, userID: userName)).then((value) => setState((){}));
+                                    },
+                                  );
+                                }
+                            );
+                          }
+                        } else {
+                          return SingleChildScrollView(
+                            child: Wrap(
+                              direction: Axis.horizontal,
+                              children: snapshot.data!["allLeaders"]["groups"].map<Widget>((group)=>LeaderByGroupCard(group)).toList() ,
+                            ),
+                          );
+                        }
                       } else {
                         if (snapshot.hasError) {
                           print('Error: ${snapshot.error}');
@@ -104,19 +123,34 @@ class _userConfigurationState extends State<userConfiguration> {
   Future<Map<String, dynamic>> loadSearch() async {
     var data = <String, dynamic>{};
     data["allLeaders"] = await api.getAllLeaders(context);
-    data["matches"] = [];
+    data["matches"] = <UserLeaderMatch>[];
     if(search.text.isEmpty) {
       // data["allLeaders"] = await api.getAllLeaders(context);
     } else {
       // return await api.loadSearchKids(context,search.text);
       var searchText = search.text.toLowerCase();
-      for(var leader in data["allLeaders"]["leaders"]) {
+      /* for(var leader in data["allLeaders"]["leaders"]) {
         var name = "${leader['firstName']} ${leader['lastName']}";
         if(name.toLowerCase().contains(searchText)) {
           data["matches"].add(UserLeaderMatch(name: name, leader: Leader.fromJSONObject(leader)));
         }
       }
+      for(var user in data["allLeaders"]["users"]) {
+        var name = "${user['firstName']} ${user['lastName']}";
+        if(name.toLowerCase().contains(searchText)) {
+          data["matches"].add(UserLeaderMatch(name: name, user: User.fromJSONObject(user)));
+        }
+      } */
+      for(var combo in data["allLeaders"]["combo"]) {
+        String name = combo["name"];
+        if(name.toLowerCase().contains(searchText)) {
+          var leader = Leader.fromJSONObject(combo["leader"]);
+          var user = User.fromJSONObject(combo["user"]);
+          data["matches"].add(UserLeaderMatch(name: name, user: user, leader: leader));
+        }
+      }
     }
+    print("done");
     return data;
   }
   submitSearch(newValue) {
@@ -153,6 +187,9 @@ class LeaderByGroupCard extends StatelessWidget {
               Column(
                 children: group["leaders"].map<Widget>((leader) => ListTile(
                   title: Text("${leader["firstName"]} ${leader["lastName"]}"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/addUser', arguments: UserScreenArgs(leaderID: leader["leaderID"]));
+                  },
                 )).toList(),
               ),
             ],

@@ -196,6 +196,7 @@ class _MainContent extends State<MainContent> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               //print(loadGroups());
+              var groupName = snapshot.data!.groupData.group == null ? "n/a" : snapshot.data!.groupData.group!.groupName;
               return Column(
                 children: [
                   Text(
@@ -206,7 +207,7 @@ class _MainContent extends State<MainContent> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Group ${snapshot.data!.groupData.group!.groupName}', style: const TextStyle(fontSize: 25),),
+                      Text('Group $groupName', style: const TextStyle(fontSize: 25),),
                       const Text('  Quick Access', style: TextStyle(fontSize: 23, fontStyle: FontStyle.italic,),),
                     ],
                   ),

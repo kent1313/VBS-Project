@@ -6,6 +6,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:vbs_shared/vbs_shared.dart';
 
 import 'config.dart';
+import 'passwordAuthentication.dart';
 
 class SetupRoutes {
   /*
@@ -17,28 +18,39 @@ class SetupRoutes {
     app.post('${config.prefix}/updateUser', (Request request) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
+      final payload = request.context["payload"]! as ContextPayload;
+
+      if(payload.admin != "full") {
+        return Response(401, body: "You don't have access to update users");
+      }
 
       var user = User.fromJSONObject(jsonDecode(body));
+
+      if(payload.organizationID != -1) {
+        user.organizationID = payload.organizationID;
+      }
 
       var action = await conn.execute(
           "select count(*) count from tblUser where userName = :user",
           {"user": user.userName});
       if (action.rows.first.typedAssoc()["count"] == 0) {
         action = await conn.execute(
-            "insert into tblUser (userName, password, leaderID, systemAdmin) values (:user, md5(:password), :leaderID, :systemAdmin)",
+            "insert into tblUser (userName, password, leaderID, systemAdmin, organizationID) values (:user, md5(:password), :leaderID, :systemAdmin, :orgID)",
             {
               "user": user.userName,
               "password": user.password,
               "leaderID": user.leaderID,
-              "systemAdmin": user.systemAdmin
+              "systemAdmin": user.systemAdmin,
+              "orgID": user.organizationID,
             });
       } else {
         action = await conn.execute(
-            "update tblUser set leaderID = :leaderID, systemAdmin = :systemAdmin where userName = :user",
+            "update tblUser set leaderID = :leaderID, systemAdmin = :systemAdmin, organizationID = :orgID where userName = :user",
             {
               "user": user.userName,
               "leaderID": user.leaderID,
-              "systemAdmin": user.systemAdmin
+              "systemAdmin": user.systemAdmin,
+              "orgID": user.organizationID,
             });
         if (user.password.isNotEmpty) {
           action = await conn.execute(
@@ -62,33 +74,43 @@ class SetupRoutes {
     app.post('${config.prefix}/updateLeader', (Request request) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
+      final payload = request.context["payload"]! as ContextPayload;
+
+      if(payload.admin != "full") {
+        return Response(401, body: "You don't have access to update users");
+      }
 
       var leader = Leader.fromJSONObject(jsonDecode(body));
+      if(payload.organizationID != -1) {
+        leader.organizationID = payload.organizationID;
+      }
 
       var rowsUpdated = 0;
       var rowsInserted = 0;
       if (leader.leaderID <= 0) {
         IResultSet action = await conn.execute(
-            "insert into tblLeader (firstName, lastName, email, phone, groupID) values (:firstName, :lastName, :email, :phone, :groupID)",
+            "insert into tblLeader (firstName, lastName, email, phone, groupID, organizationID) values (:firstName, :lastName, :email, :phone, :groupID, :orgID)",
             {
               "firstName": leader.firstName,
               "lastName": leader.lastName,
               "email": leader.email,
               "phone": leader.phone,
-              "groupID": leader.groupID
+              "groupID": leader.groupID,
+              "orgID": leader.organizationID,
             });
         leader.leaderID = action.lastInsertID.toInt();
         rowsInserted = action.affectedRows.toInt();
       } else {
         var action = await conn.execute(
-            "update tblLeader set firstName = :firstName, lastName = :lastName, email = :email, phone = :phone, groupID = :groupID where leaderID = :leaderID",
+            "update tblLeader set firstName = :firstName, lastName = :lastName, email = :email, phone = :phone, groupID = :groupID, organizationID = :orgID where leaderID = :leaderID",
             {
               "leaderID": leader.leaderID,
               "firstName": leader.firstName,
               "lastName": leader.lastName,
               "email": leader.email,
               "phone": leader.phone,
-              "groupID": leader.groupID
+              "groupID": leader.groupID,
+              "orgID": leader.organizationID,
             });
         rowsUpdated = action.affectedRows.toInt();
       }
@@ -103,16 +125,66 @@ class SetupRoutes {
 
     /*
      -------------------------------------
-       Insert / Update leaders
+       Get Leader
+     -------------------------------------
+     */
+    app.get('${config.prefix}/getLeader/<leaderID>', (Request request, String strLeaderID) async {
+      final conn = await config.connectToDatabase();
+      final payload = request.context["payload"]! as ContextPayload;
+
+      int leaderID = int.parse(strLeaderID);
+
+      IResultSet result = await conn.execute("select * from tblLeader where leaderID = :leaderID and (organizationID = :orgID or :orgID = -1)",
+          {"leaderID": leaderID, "orgID": payload.organizationID});
+      var row = result.rows.first.typedAssoc();
+      var leader = Leader();
+      leader.leaderID = row["leaderID"];
+      leader.email = row["email"];
+      leader.firstName = row["firstName"];
+      leader.lastName = row["lastName"];
+      leader.phone = row["phone"];
+      leader.groupID = row["groupID"];
+
+      conn.close();
+      return Response.ok(jsonEncode(leader.toJSON()));
+    });
+
+    /*
+     -------------------------------------
+       Get User
+     -------------------------------------
+     */
+    app.get('${config.prefix}/getUser/<userName>', (Request request, String userName) async {
+      final conn = await config.connectToDatabase();
+      final payload = request.context["payload"]! as ContextPayload;
+
+      IResultSet result = await conn.execute("select * from tblUser where userName = :userName and (organizationID = :orgID or :orgID = -1)",
+          {"userName": userName, "orgID": payload.organizationID});
+      var row = result.rows.first.typedAssoc();
+      var user = User();
+      user.userName = row["userName"];
+      user.password = row["password"];
+      user.leaderID = row["leaderID"];
+      user.systemAdmin = row["systemAdmin"];
+
+      conn.close();
+      return Response.ok(jsonEncode(user.toJSON()));
+    });
+
+      /*
+     -------------------------------------
+       List all the leaders
      -------------------------------------
      */
     app.get('${config.prefix}/getLeaders', (Request request) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
+      final payload = request.context["payload"]! as ContextPayload;
 
       Map<int, Leader> leaderMap = {};
       List<Leader> leaders = [];
-      IResultSet result = await conn.execute("select * from tblLeader");
+      IResultSet result = await conn.execute("select * from tblLeader where (organizationID = :orgID or :orgID = -1)", {"orgID": payload.organizationID});
+
       for(var r in result.rows) {
         var row = r.typedAssoc();
         var leader = Leader();
@@ -127,7 +199,7 @@ class SetupRoutes {
       }
 
       List<User> users = [];
-      result = await conn.execute("select * from tblUser");
+      result = await conn.execute("select * from tblUser where (organizationID = :orgID or :orgID = -1)", {"orgID": payload.organizationID});
       for(var r in result.rows) {
         var row = r.typedAssoc();
         var user = User();
@@ -139,7 +211,7 @@ class SetupRoutes {
       }
 
       List<Map<String, dynamic>> groups = [];
-      result = await conn.execute("select * from tblGroup");
+      result = await conn.execute("select * from tblGroup where (organizationID = :orgID or :orgID = -1)", {"orgID": payload.organizationID});
       for(var r in result.rows) {
         var row = r.typedAssoc();
         var group = Group();
@@ -185,7 +257,7 @@ class SetupRoutes {
       var data = {
         "combo": combo,
         "leaders": leaders.map((e) => e.toJSON()).toList(),
-        "users": leaders.map((e) => e.toJSON()).toList(),
+        "users": users.map((e) => e.toJSON()).toList(),
         "groups": groups,
       };
       conn.close();

@@ -133,6 +133,28 @@ class API {
     return kids;
   }
 
+  Future<void> updateUser(context, User user) async {
+    var response = await sendMessage(
+      context: context,
+      path: "/updateUser",
+      body: jsonEncode(user.toJSON()),
+      method: "POST",
+    );
+    print(response);
+  }
+
+  Future<void> updateLeader(context, Leader leader) async {
+    var response = await sendMessage(
+        context: context,
+        path: "/updateLeader",
+        body: jsonEncode(leader.toJSON()),
+      method: "POST",
+    );
+    var result = jsonDecode(response);
+    leader.leaderID = result["leaderUpdated"];
+    print(response);
+  }
+
   Future<List<Kid>> loadAllKids(context) async {
     var response = await sendMessage(context: context, path: '/kidNames');
     List<dynamic> jsonList = jsonDecode(response);
@@ -222,6 +244,16 @@ class API {
   Future<Map<String, dynamic>> getAllLeaders(context) async {
     var response = await sendMessage(context: context, path: "getLeaders");
     return jsonDecode(response);
+  }
+
+  Future<Leader> getLeader(context, int leaderID) async {
+    var response = await sendMessage(context: context, path: "getLeader/$leaderID");
+    return Leader.fromJSONObject(jsonDecode(response));
+  }
+
+  Future<User> getUser(context, String userName) async {
+    var response = await sendMessage(context: context, path: "getUser/$userName");
+    return User.fromJSONObject(jsonDecode(response));
   }
 
   // ------------------------------------

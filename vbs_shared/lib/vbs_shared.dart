@@ -191,7 +191,7 @@ class GroupData {
       aList.add(attend.toJSON());
     }
     Object obj = {
-      'details': group!.toJSON(),
+      'details': group == null ? null : group!.toJSON(),
       'attendance': aList,
     };
     return obj;
@@ -199,7 +199,9 @@ class GroupData {
 
   static GroupData fromJSONObject(Map json) {
     var data = GroupData();
-    data.group = Group.fromJSONObject(json["details"]);
+    if(json["details"] != null) {
+      data.group = Group.fromJSONObject(json["details"]);
+    }
     for(var attendJson in json["attendance"]) {
       data.attendance.add(Attendance.fromJSONObject(attendJson));
     }
@@ -328,6 +330,7 @@ class User {
   String password = "";
   int leaderID = -1;
   String systemAdmin = "N";
+  int organizationID = -1;
 
   static User fromJSONObject(Map<String, dynamic> json) {
     User user = User();
@@ -335,6 +338,7 @@ class User {
     user.password = json["password"];
     user.leaderID = json["leaderID"];
     user.systemAdmin = json["systemAdmin"];
+    user.organizationID = json["organizationID"];
     return user;
   }
 
@@ -344,6 +348,7 @@ class User {
       "password": password,
       "leaderID": leaderID,
       "systemAdmin": systemAdmin,
+      "organizationID": organizationID,
     };
   }
 }
@@ -355,6 +360,7 @@ class Leader {
   String email = "";
   int phone = 0;
   int groupID = -1;
+  int organizationID = -1;
 
   static Leader fromJSONObject(Map<String, dynamic> json) {
     Leader leader = Leader();
@@ -364,6 +370,7 @@ class Leader {
     leader.email = json["email"];
     leader.phone = json["phone"];
     leader.groupID = json["groupID"];
+    leader.organizationID = json["organizationID"];
     return leader;
   }
 
@@ -375,6 +382,7 @@ class Leader {
       "email": email,
       "phone": phone,
       "groupID": groupID,
+      "organizationID": organizationID,
     };
   }
 
