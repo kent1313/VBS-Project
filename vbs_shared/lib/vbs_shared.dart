@@ -7,6 +7,7 @@ class Group {
   int? mainLeaderID;
   int? memberCount;
   int? hereCount;
+  int? score;
 
   Object toJSON() {
     Object obj = {
@@ -15,6 +16,7 @@ class Group {
       'mainLeaderID': mainLeaderID,
       'memberCount': memberCount,
       'hereCount': hereCount,
+      'score': score,
     };
     return obj;
   }
@@ -31,6 +33,7 @@ class Group {
     group.mainLeaderID = obj["mainLeaderID"];
     group.memberCount = obj["memberCount"];
     group.hereCount = obj["hereCount"];
+    group.score = obj["score"];
     return group;
   }
 

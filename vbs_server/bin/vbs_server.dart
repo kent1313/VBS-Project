@@ -461,6 +461,31 @@ void main() async {
   });
 
   // ---------------------------
+  //  get the score
+  // ---------------------------
+  app.get('${config.prefix}/score', (Request request) async {
+    final conn = await config.connectToDatabase();
+    int orgID = (request.context["payload"]! as ContextPayload).organizationID;
+    var getScore = await conn.execute(
+        "select k.groupID, g.groupName, sum(1 + (case when bible = 'Y' then 1 else 0 end) + "
+        "(case when verse = 'Y' then 1 else 0 end) + (case when visitors > 0 then 1 else 0 end)) "
+        "total from tblAttendance a, tblKid k, tblGroup g where g.organizationID = :orgID and "
+        "k.organizationID = :orgID and a.organizationID = :orgID and a.kidID = k.kidID and k.groupID = g.groupID "
+        "group by k.groupID, g.groupName;",
+      {'orgID': orgID});
+    List<Group> score = [];
+    for(var row in getScore.rows) {
+      Group group = Group();
+      group.groupID = row.typedAssoc()['groupID'];
+      group.groupName = row.typedAssoc()['groupName'];
+      group.score = row.typedAssoc()['total'];
+      score.add(group);
+    }
+    conn.close();
+    return Response.ok(jsonEncode(score));
+  });
+
+  // ---------------------------
   //  /getFamily/<familyID>
   // ---------------------------
   app.get('${config.prefix}/getFamily/<familyID>', (Request request, String familyIDString) async {
