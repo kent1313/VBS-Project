@@ -9,13 +9,14 @@ import 'config.dart';
 import 'passwordAuthentication.dart';
 
 class SetupRoutes {
-  /*
+  static addRoutes(Router app) {
+
+    /*
      -------------------------------------
        Insert / Update the users
      -------------------------------------
    */
-  static addRoutes(Router app) {
-    app.post('${config.prefix}/updateUser/<origUsername>', (Request request, String origUsername) async {
+    insertUpdateUserRoute (Request request, String origUsername) async {
       final body = await request.readAsString();
       final conn = await config.connectToDatabase();
       final payload = request.context["payload"]! as ContextPayload;
@@ -37,6 +38,21 @@ class SetupRoutes {
             "select count(*) count from tblUser where userName = :user",
             {"user": origUsername});
         foundCount = action.rows.first.typedAssoc()["count"];
+      } else {
+        // This is a new user (original user is empty)
+        action = await conn.execute(
+            "select count(*) count from tblUser where userName = :user",
+            {"user": user.userName});
+        foundCount = action.rows.first.typedAssoc()["count"];
+        if(foundCount > 0) {
+          // the new user already exists
+          var data = {
+            "error": true,
+            "message": "Username already exists, please pick a different one",
+          };
+          conn.close();
+          return Response.ok(jsonEncode(data));
+        }
       }
       if (foundCount == 0) {
         action = await conn.execute(
@@ -70,7 +86,14 @@ class SetupRoutes {
         "userUpdated": user.userName,
       };
       return Response.ok(jsonEncode(data));
+    };
+    app.post('${config.prefix}/updateUser', (Request request) async {
+      return insertUpdateUserRoute(request, "");
     });
+    app.post('${config.prefix}/updateUser/', (Request request) async {
+      return insertUpdateUserRoute(request, "");
+    });
+    app.post('${config.prefix}/updateUser/<origUsername>', insertUpdateUserRoute);
 
     /*
      -------------------------------------
@@ -174,7 +197,8 @@ class SetupRoutes {
       var row = result.rows.first.typedAssoc();
       var user = User();
       user.userName = row["userName"];
-      user.password = row["password"];
+      // We only know the password hash, not the actual password, and we don't want to share it
+      //user.password = row["password"];
       user.leaderID = row["leaderID"];
       user.systemAdmin = row["systemAdmin"];
 
@@ -188,7 +212,6 @@ class SetupRoutes {
      -------------------------------------
      */
     app.get('${config.prefix}/getLeaders', (Request request) async {
-      final body = await request.readAsString();
       final conn = await config.connectToDatabase();
       final payload = request.context["payload"]! as ContextPayload;
 

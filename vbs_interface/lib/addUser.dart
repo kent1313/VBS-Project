@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vbs_shared/vbs_shared.dart';
@@ -37,6 +39,15 @@ class _AddUserState extends State<AddUser> {
   User? user;
   Leader? leader;
   String originalUser = "";
+  bool isPasswordChanged = false;
+  String userNameError = "";
+
+  @override
+  void initState() {
+    password.addListener(() {
+      isPasswordChanged = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +97,9 @@ class _AddUserState extends State<AddUser> {
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
                                             return 'Each user must have a username.';
+                                          }
+                                          if(userNameError.isNotEmpty) {
+                                            return userNameError;
                                           }
                                           return null;
                                         },
@@ -299,10 +313,14 @@ class _AddUserState extends State<AddUser> {
                               )
                           ),
                           ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  createUser();
-                                  Navigator.pop(context);
+                                  var success = await createUser();
+                                  if(success) {
+                                    Navigator.pop(context);
+                                  } else {
+                                    setState((){});
+                                  }
                                 }
                               },
                               child: const Text('Submit')
@@ -320,7 +338,7 @@ class _AddUserState extends State<AddUser> {
     );
   }
 
-  createUser() async {
+  Future<bool> createUser() async {
     if(leader != null) {
       leader!.firstName = firstName.text;
       leader!.lastName = lastName.text;
@@ -337,7 +355,11 @@ class _AddUserState extends State<AddUser> {
     }
     if(user != null) {
       user!.userName = username.text;
-      user!.password = password.text;
+      if(isPasswordChanged) {
+        user!.password = password.text;
+      } else {
+        user!.password = "";
+      }
       if (pickAdmin == 'Leader') {
         user!.systemAdmin = 'N';
       }
@@ -351,8 +373,14 @@ class _AddUserState extends State<AddUser> {
         // the updateLeader() will update the leaderID after inserting
         user!.leaderID = leader!.leaderID;
       }
-      await api.updateUser(context, originalUser, user!);
+      var response = await api.updateUser(context, originalUser, user!);
+      print(jsonEncode(response));
+      if(response["error"] ?? false) {
+        userNameError = response["message"];
+        return false;
+      }
     }
+    return true;
   }
 
   Future<ScreenData> loadData(UserScreenArgs args) async {
@@ -383,6 +411,7 @@ class _AddUserState extends State<AddUser> {
       this.user = await user;
       username.text = this.user!.userName;
       password.text = "*****";
+      isPasswordChanged = false;
       if(this.user!.systemAdmin == "N") {
         pickAdmin = "Leader";
       }

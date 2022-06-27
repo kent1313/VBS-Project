@@ -133,14 +133,14 @@ class API {
     return kids;
   }
 
-  Future<void> updateUser(context, String originalUser, User user) async {
+  Future<Map<String, dynamic>> updateUser(context, String originalUser, User user) async {
     var response = await sendMessage(
       context: context,
       path: "/updateUser/$originalUser",
       body: jsonEncode(user.toJSON()),
       method: "POST",
     );
-    print(response);
+    return jsonDecode(response);
   }
 
   Future<void> updateLeader(context, Leader leader) async {
