@@ -212,6 +212,18 @@ class API {
     var kidCount = KidCount.fromJSONObject(jsonDecode(response));
     return kidCount;
   }
+  Future<List<Group>> getScore(context) async {
+    var response = await sendMessage(
+      context: context,
+      method: 'get',
+      path: 'score',
+    );
+    List<Group> list = [];
+    for(var group in jsonDecode(response)) {
+      list.add(Group.fromJSONObject(group));
+    }
+    return list;
+  }
   Future<FamilyResult> loadFamily(context, int familyID) async {
     var response = await sendMessage(context: context, path: "getFamily/$familyID");
     var data = jsonDecode(response);
