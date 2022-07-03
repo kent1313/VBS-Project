@@ -133,14 +133,14 @@ class API {
     return kids;
   }
 
-  Future<void> updateUser(context, User user) async {
+  Future<Map<String, dynamic>> updateUser(context, String originalUser, User user) async {
     var response = await sendMessage(
       context: context,
-      path: "/updateUser",
+      path: "/updateUser/$originalUser",
       body: jsonEncode(user.toJSON()),
       method: "POST",
     );
-    print(response);
+    return jsonDecode(response);
   }
 
   Future<void> updateLeader(context, Leader leader) async {
@@ -211,6 +211,18 @@ class API {
     //var kids = GroupData.fromJSONObject(jsonDecode(response));
     var kidCount = KidCount.fromJSONObject(jsonDecode(response));
     return kidCount;
+  }
+  Future<List<Group>> getScore(context) async {
+    var response = await sendMessage(
+      context: context,
+      method: 'get',
+      path: 'score',
+    );
+    List<Group> list = [];
+    for(var group in jsonDecode(response)) {
+      list.add(Group.fromJSONObject(group));
+    }
+    return list;
   }
   Future<FamilyResult> loadFamily(context, int familyID) async {
     var response = await sendMessage(context: context, path: "getFamily/$familyID");

@@ -364,6 +364,7 @@ class Leader {
   int phone = 0;
   int groupID = -1;
   int organizationID = -1;
+  String associatedUser = "";
 
   static Leader fromJSONObject(Map<String, dynamic> json) {
     Leader leader = Leader();
@@ -374,6 +375,7 @@ class Leader {
     leader.phone = json["phone"];
     leader.groupID = json["groupID"];
     leader.organizationID = json["organizationID"];
+    leader.associatedUser = json["associatedUser"];
     return leader;
   }
 
@@ -386,6 +388,7 @@ class Leader {
       "phone": phone,
       "groupID": groupID,
       "organizationID": organizationID,
+      "associatedUser": associatedUser,
     };
   }
 

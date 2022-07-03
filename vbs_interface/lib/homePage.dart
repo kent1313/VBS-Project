@@ -98,6 +98,12 @@ class _homePageState extends State<homePage> {
         ),
       ),
       body: MainContent(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState((){});
+        },
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 
@@ -256,12 +262,30 @@ class _MainContent extends State<MainContent> {
         future: loadKidCount(),
           builder: (context, snapshot) {
           if(snapshot.hasData) {
-            return Column(
-              children: [
-                Text('Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}!', style: const TextStyle(fontSize: 25),),
-                const SizedBox(height: 10,),
-                Text('There are ${snapshot.data!.kidCount.here} out of ${snapshot.data!.kidCount.kids} kids here today', style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic,),),
-              ],
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text('Welcome, ${snapshot.data!.userInfo.userName!.substring(0,1).toUpperCase()}${snapshot.data!.userInfo.userName!.substring(1,snapshot.data!.userInfo.userName!.length)}!', style: const TextStyle(fontSize: 25),),
+                  const SizedBox(height: 10,),
+                  Text('There are ${snapshot.data!.kidCount.here} out of ${snapshot.data!.kidCount.kids} kids here today', style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic,),),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 2),
+                    child: const Text("Score", style: TextStyle(fontSize: 30),),
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.score.length,
+                      itemBuilder: (context, index) {
+                      var group = snapshot.data!.score[index];
+                        return ListTile(
+                          title: Text(group.groupName ?? ""),
+                          trailing: Text("${group.score}"),
+                        );
+                      },
+                  ),
+                ],
+              ),
             );
           } else {
             return CircularProgressIndicator();
@@ -319,7 +343,9 @@ class _MainContent extends State<MainContent> {
   Future<AdminData> loadKidCount() async {
     var kidCount = await api.kidCount(context, Date.today().makeString());
     var userInfo = await api.getUserInfo(context);
-    return AdminData(kidCount, userInfo);
+    var score = await api.getScore(context);
+
+    return AdminData(kidCount, userInfo, score);
   }
 }
 
@@ -333,6 +359,8 @@ class ScreenData {
 class AdminData {
   KidCount kidCount;
   UserInfo userInfo;
+  List<Group> score;
 
-  AdminData(this.kidCount, this.userInfo);
+
+  AdminData(this.kidCount, this.userInfo, this.score);
 }

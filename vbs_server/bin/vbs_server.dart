@@ -473,13 +473,14 @@ void main() async {
         "k.organizationID = :orgID and a.organizationID = :orgID and a.kidID = k.kidID and k.groupID = g.groupID "
         "group by k.groupID, g.groupName;",
       {'orgID': orgID});
-    List<Group> score = [];
+    List<Object> score = [];
     for(var row in getScore.rows) {
       Group group = Group();
-      group.groupID = row.typedAssoc()['groupID'];
-      group.groupName = row.typedAssoc()['groupName'];
-      group.score = row.typedAssoc()['total'];
-      score.add(group);
+      var rowData = row.typedAssoc();
+      group.groupID = rowData['groupID'];
+      group.groupName = rowData['groupName'];
+      group.score = int.parse(rowData['total']);
+      score.add(group.toJSON());
     }
     conn.close();
     return Response.ok(jsonEncode(score));
